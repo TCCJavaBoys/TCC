@@ -1,0 +1,4 @@
+Fonte Bibliografica
+
+SQL:
+https://www.dio.me/articles/boas-praticas-de-nomenclatura-em-bancos-de-dados-sql-server
