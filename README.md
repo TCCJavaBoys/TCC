@@ -65,8 +65,8 @@ Demonstrar a aplicação prática de conceitos como:
 ## 👨‍💻 Autor
 
 Erik Carobolante Goulart  
-Julio Cesar Satim
-Curso: Ciencia da Computação 
+Julio Cesar Satim   
+Curso: Ciencia da Computação   
 Instituição: Unip
 
 ---
