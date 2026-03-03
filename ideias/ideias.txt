@@ -1,0 +1,5 @@
+Parte do motivo de ser Scrum:
+Comparar Cascata vs Scrum
+Justificar escolha do Scrum
+Citar XP para boas práticas técnicas
+Mencionar Kanban para gestão de tarefas
