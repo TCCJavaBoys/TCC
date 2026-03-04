@@ -1,0 +1,71 @@
+ANÁLISE DO MAPA MENTAL DO TCC
+
+AVALIAÇÃO GERAL
+
+O mapa mental apresenta uma estrutura bem organizada e demonstra visão
+técnica adequada para um Trabalho de Conclusão de Curso na área de
+desenvolvimento de sistemas. A divisão entre metodologia, front-end,
+back-end, banco de dados e documentação mostra maturidade na organização
+do projeto.
+
+PONTOS FORTES
+
+1.  Estrutura Bem Definida
+
+A separação entre: - SCRUM - Front-End - Back-End - Banco de Dados -
+Documentação - Diagramas
+
+demonstra compreensão da organização de um projeto de software e está
+alinhada com o tema do TCC envolvendo Arquitetura em Camadas e
+Metodologia Scrum.
+
+2.  Separação Técnica Correta
+
+Front-End: - WinForms
+
+Back-End: - C# - SQLite - Arquitetura em Camadas - .NET 8 LTS
+
+Essa divisão está coerente com boas práticas de desenvolvimento e
+fortalece a parte técnica do trabalho.
+
+3.  Inclusão da Metodologia Scrum
+
+A presença do Scrum como parte central do mapa mental é um diferencial.
+Muitos trabalhos focam apenas na implementação, mas incluir a
+metodologia demonstra preocupação com processo e gestão de projeto.
+
+SUGESTÕES DE MELHORIA
+
+1.  Separar Parte Teórica da Parte Técnica
+
+Sugere-se dividir o TCC em dois grandes blocos:
+
+Fundamentação Teórica: - Banco de Dados Relacional - Arquitetura em
+Camadas - Metodologia Scrum - Engenharia de Software
+
+Desenvolvimento do Sistema: - Front-End - Back-End - Banco de Dados -
+Diagramas - Documentação
+
+Isso torna o trabalho mais acadêmico e estruturado.
+
+2.  Especificar Melhor os Diagramas
+
+Pode-se detalhar quais diagramas serão utilizados: - Diagrama de Casos
+de Uso - Diagrama de Classes - Diagrama de Sequência - DER (Diagrama
+Entidade-Relacionamento) - Diagrama de Arquitetura
+
+Isso demonstra domínio técnico e aumenta a qualidade do trabalho.
+
+3.  Detalhar a Parte de Banco de Dados
+
+Dentro de Banco de Dados, recomenda-se incluir: - Modelagem Conceitual -
+Modelagem Lógica - Normalização - Script SQL
+
+Isso evidencia fundamentação teórica sólida.
+
+CONCLUSÃO
+
+O mapa mental está acima da média para trabalhos de graduação,
+especialmente considerando o uso de C#, .NET 8 e Arquitetura em Camadas.
+Com pequenos ajustes estruturais, o trabalho pode alcançar nível elevado
+de qualidade técnica e acadêmica.

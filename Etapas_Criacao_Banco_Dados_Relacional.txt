@@ -1,0 +1,74 @@
+ETAPAS PARA A CRIAÇÃO DE UM BANCO DE DADOS RELACIONAL
+
+1.  INTRODUÇÃO
+
+O banco de dados relacional é um dos principais modelos utilizados no
+desenvolvimento de sistemas de informação, permitindo o armazenamento
+estruturado de dados por meio de tabelas relacionadas entre si. A
+criação de um banco de dados relacional exige a aplicação de conceitos
+teóricos da modelagem de dados, garantindo organização, integridade e
+eficiência no armazenamento das informações.
+
+Este capítulo apresenta as etapas teóricas fundamentais para a criação
+de um banco de dados relacional, desde o levantamento de requisitos até
+a modelagem física.
+
+2.  LEVANTAMENTO DE REQUISITOS
+
+A primeira etapa consiste no levantamento de requisitos, cujo objetivo é
+compreender as necessidades do sistema e identificar quais informações
+deverão ser armazenadas. Nesta fase são analisadas as regras de negócio,
+os usuários envolvidos e os processos que serão informatizados.
+
+O levantamento adequado de requisitos é essencial para evitar retrabalho
+e inconsistências futuras na estrutura do banco de dados.
+
+3.  MODELAGEM CONCEITUAL
+
+A modelagem conceitual representa o mundo real de forma abstrata,
+utilizando o Modelo Entidade-Relacionamento (MER). Nesta etapa são
+identificadas:
+
+-   Entidades (ex: Cliente, Produto, Venda);
+-   Atributos (ex: nome, preço, data);
+-   Relacionamentos entre entidades;
+-   Cardinalidades (1:1, 1:N, N:N).
+
+O principal resultado desta fase é o Diagrama Entidade-Relacionamento
+(DER), que representa graficamente a estrutura do sistema sem considerar
+ainda o banco de dados específico.
+
+4.  MODELAGEM LÓGICA
+
+Na modelagem lógica, o modelo conceitual é transformado em um modelo
+relacional. As entidades tornam-se tabelas, os atributos tornam-se
+colunas e os relacionamentos são representados por meio de chaves
+primárias (PK) e chaves estrangeiras (FK).
+
+Relacionamentos do tipo muitos-para-muitos (N:N) são resolvidos por meio
+da criação de tabelas associativas.
+
+Essa etapa já estrutura o banco de dados de forma compatível com os
+Sistemas Gerenciadores de Banco de Dados (SGBDs).
+
+5.  NORMALIZAÇÃO
+
+A normalização é um processo teórico que visa eliminar redundâncias e
+evitar anomalias de inserção, atualização e exclusão de dados.
+
+As principais formas normais aplicadas são:
+
+-   Primeira Forma Normal (1FN): elimina grupos repetitivos e garante
+    atomicidade dos atributos;
+-   Segunda Forma Normal (2FN): elimina dependências parciais;
+-   Terceira Forma Normal (3FN): elimina dependências transitivas.
+
+6.  MODELAGEM FÍSICA
+
+A modelagem física corresponde à implementação prática do banco de dados
+em um SGBD específico. Nesta etapa são definidos os tipos de dados,
+índices, restrições de integridade (NOT NULL, UNIQUE, CHECK), além de
+aspectos relacionados ao desempenho e armazenamento.
+
+A correta aplicação dessas etapas garante um banco de dados consistente,
+organizado e adequado às necessidades do sistema desenvolvido.
