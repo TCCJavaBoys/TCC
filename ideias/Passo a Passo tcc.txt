@@ -1,0 +1,226 @@
+Capítulo 2 — Referencial Teórico (Fundamentação)
+O que é
+Aqui você não fala do seu sistema ainda.
+Você explica os conceitos teóricos que sustentam o seu trabalho.
+É como se fosse:
+
+	“Antes de explicar meu sistema, vou explicar os conceitos da área”.
+
+O que você deve falar no seu caso
+Para seu sistema de estoque e vendas, normalmente aparecem esses tópicos:
+
+2.1 Sistemas de Informação
+Explicar o que são sistemas de informação.
+Exemplo:
+- conceito
+- importância nas empresas
+- automação de processos
+
+2.2 Controle de Estoque
+Explicar:
+- o que é estoque
+- importância do controle
+- problemas de controle manual
+
+2.3 Banco de Dados
+Explicar:
+- o que é banco de dados
+- importância no armazenamento de dados
+- modelo relacional
+
+2.4 Engenharia de Software
+Explicar:
+- desenvolvimento de software
+- organização de sistemas
+- ciclo de vida do software
+
+2.5 Arquitetura em Camadas
+Aqui entra seu sistema.
+Explicar:
+- o que é arquitetura em camadas
+- vantagens
+- separação de responsabilidades
+
+2.6 Trabalhos Relacionados
+Aqui você mostra:
+outros sistemas ou pesquisas parecidas.
+Exemplo:
+- sistemas de controle de estoque
+- sistemas de vendas
+- sistemas para pequenos comércios
+
+Objetivo do Capítulo 2
+Mostrar que você estudou o assunto antes de desenvolver o sistema.
+Normalmente tem 8 a 15 páginas.
+
+Capítulo 3 — Metodologia
+Aqui você explica:
+COMO você fez o trabalho Não é teoria. É o processo do projeto.
+O que entra aqui
+Tipo de pesquisa
+Exemplo:
+- pesquisa aplicada
+- abordagem qualitativa
+- objetivo exploratório
+Exemplo de texto:
+	Este trabalho caracteriza-se como uma pesquisa aplicada, pois busca desenvolver uma solução prática para o controle de estoque e vendas em uma cantina escolar.
+
+Método de desenvolvimento
+Você explica:
+- levantamento de requisitos
+- modelagem do banco
+- desenvolvimento do sistema
+- testes
+
+Ferramentas utilizadas
+Exemplo do seu projeto:
+- C#
+- .NET
+- SQL Server
+- Visual Studio
+
+Metodologia de desenvolvimento
+Pode falar:
+- modelo cascata
+- prototipação
+Exemplo:
+	O desenvolvimento seguiu um modelo incremental, iniciando com levantamento de requisitos, seguido pela modelagem do sistema e implementação das funcionalidades.
+
+Normalmente tem 4 a 6 páginas.
+
+Capítulo 4 — Especificação e Projeto do Sistema
+Aqui você planeja o sistema. É como se fosse o projeto da casa antes de construir.
+O que entra
+
+Requisitos funcionais
+O que o sistema faz.
+Exemplo:
+- cadastrar produtos
+- registrar vendas
+- controlar estoque
+- consultar produtos
+
+Requisitos não funcionais
+Características do sistema:
+- segurança
+- desempenho
+- usabilidade
+
+Diagramas UML
+Normalmente pedem:
+Diagrama de Casos de Uso, mostra:
+Usuário → Cadastrar produto
+Usuário → Registrar venda
+Usuário → Consultar estoque
+
+Diagrama de Classes
+Mostra as tabelas/objetos.
+Exemplo:
+Produto
+Venda
+ItemVenda
+
+Arquitetura
+Você explica que usou: 
+arquitetura em camadas
+Exemplo:
+- Interface
+- Lógica
+- Dados
+
+Normalmente tem 6 a 10 páginas.
+
+Capítulo 5 — Implementação
+Aqui você mostra:
+	o sistema funcionando
+O que entra
+Tecnologias
+Exemplo:
+- C#
+- .NET
+- SQLite
+
+Organização do código
+Exemplo:
+Projeto
+ ├ Interface
+ ├ Regras
+ ├ Dados
+Funcionalidades
+
+Explica como fez:
+- cadastro de produto
+- venda
+- controle de estoque
+- Screenshots
+
+Coloca imagens do sistema:
+- tela de cadastro
+- tela de venda
+- tela de estoque
+
+Normalmente 6 a 8 páginas.
+
+Capítulo 6 — Resultados e Testes
+Aqui você prova que o sistema funciona.
+Tipos de testes
+Testes funcionais
+
+Verificar:
+- cadastro funciona
+- venda funciona
+- estoque atualiza
+- Testes de integração
+
+Verificar:
+- venda atualiza estoque
+- Avaliação
+Exemplo:
+- sistema reduz erros
+- facilita controle
+
+Normalmente 4 a 6 páginas.
+
+Capítulo 7 — Conclusão
+Aqui você fecha o trabalho.
+O que entra
+Resumo dos resultados
+Exemplo:
+	O sistema desenvolvido atendeu aos objetivos propostos, permitindo o controle de estoque e registro de vendas de forma organizada.
+
+Resposta ao problema
+Lembra da pergunta da introdução.
+Você responde ela.
+
+Contribuição do trabalho
+Exemplo:
+- automatização do controle
+- melhoria na organização
+
+Trabalhos futuros
+
+Exemplo:
+- aplicativo mobile
+- relatórios financeiros
+- integração com pagamentos
+
+Normalmente 2 a 3 páginas.
+
+Estrutura final do seu TCC
+
+Normalmente fica assim:
+
+Capítulo	Páginas
+Introdução	5
+Referencial Teórico	10
+Metodologia	5
+Projeto do Sistema	8
+Implementação	8
+Resultados	5
+Conclusão	3
+
+Total:
+
+≈ 45 páginas
+
+que é padrão de TCC.
