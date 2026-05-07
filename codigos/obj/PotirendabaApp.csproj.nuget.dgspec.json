@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Projetos\\TCC\\PotirendabaApp.csproj": {}
+    "D:\\Projetos\\TCC\\codigos\\PotirendabaApp.csproj": {}
   },
   "projects": {
-    "D:\\Projetos\\TCC\\PotirendabaApp.csproj": {
+    "D:\\Projetos\\TCC\\codigos\\PotirendabaApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Projetos\\TCC\\PotirendabaApp.csproj",
+        "projectUniqueName": "D:\\Projetos\\TCC\\codigos\\PotirendabaApp.csproj",
         "projectName": "PotirendabaApp",
-        "projectPath": "D:\\Projetos\\TCC\\PotirendabaApp.csproj",
+        "projectPath": "D:\\Projetos\\TCC\\codigos\\PotirendabaApp.csproj",
         "packagesPath": "C:\\Users\\GamerX\\.nuget\\packages\\",
-        "outputPath": "D:\\Projetos\\TCC\\obj\\",
+        "outputPath": "D:\\Projetos\\TCC\\codigos\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\GamerX\\AppData\\Roaming\\NuGet\\NuGet.Config"

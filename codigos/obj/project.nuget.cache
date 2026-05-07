@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "PktreDJSKKo=",
+  "dgSpecHash": "3oyUvLu4Clw=",
   "success": true,
-  "projectFilePath": "D:\\Projetos\\TCC\\PotirendabaApp.csproj",
+  "projectFilePath": "D:\\Projetos\\TCC\\codigos\\PotirendabaApp.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\GamerX\\.nuget\\packages\\microsoft.data.sqlite\\7.0.15\\microsoft.data.sqlite.7.0.15.nupkg.sha512",
     "C:\\Users\\GamerX\\.nuget\\packages\\microsoft.data.sqlite.core\\7.0.15\\microsoft.data.sqlite.core.7.0.15.nupkg.sha512",
