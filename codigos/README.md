@@ -1,80 +1,80 @@
-# Documentação Técnica do Código
+# Potirendaba – Prefeitura Municipal
+Sistema Desktop C# / Windows Forms / SQLite
 
-## 📁 Estrutura de Pastas
+## Estrutura de arquivos
 
-src/
+```
+PotirendabaApp/
+├── Program.cs                          ← Entrada + InicializarBanco()
+├── MainForm.cs                         ← Tela inicial com menu lateral
+├── RoundButton.cs                      ← Controle customizado
+├── PotirendabaApp.csproj               ← .NET 8 + Microsoft.Data.Sqlite
 │
-├── MiniERP.UI
-├── MiniERP.Application
-├── MiniERP.Domain
-└── MiniERP.Infrastructure
+├── Models/
+│   ├── Aluno.cs                        ← Modelo de Aluno
+│   └── Produto.cs                      ← Modelo de Produto
+│
+├── Data/
+│   └── DatabaseHelper.cs               ← DAL: CRUD Alunos + Produtos
+│
+└── Forms/
+    ├── ListagemAlunosForm.cs           ← Grid + filtros de Alunos
+    ├── CadastroAlunoForm.cs            ← Cadastro/edição de Aluno
+    ├── ListagemProdutosForm.cs         ← Grid + filtros de Produtos
+    └── CadastroProdutoForm.cs          ← Cadastro/edição de Produto
+```
 
----
+## Requisitos
 
-# 📦 Camadas
+| Item       | Versão mínima         |
+|------------|-----------------------|
+| .NET SDK   | 8.0                   |
+| SO         | Windows 10/11         |
+| Visual Studio | 2022 (opcional)    |
 
-## UI
-Responsável pela interface gráfica (WinForms).
+## Como executar
 
-Contém:
-- Forms
-- Eventos de botão
-- Validações básicas de entrada
+### Linha de comando
+```bash
+cd PotirendabaApp
+dotnet run
+```
 
----
+### Visual Studio 2022
+Abra `PotirendabaApp.csproj` → pressione **F5**
 
-## Application
-Responsável por:
+O arquivo `potirendaba.db` (SQLite) é criado automaticamente
+na mesma pasta do executável na primeira execução.
 
-- Regras de negócio
-- Orquestração de serviços
-- Comunicação entre UI e Domain
+## Navegação
 
----
+```
+MainForm
+├── 👤 Aluno   → ListagemAlunosForm   → CadastroAlunoForm
+└── 📦 Estoque → ListagemProdutosForm → CadastroProdutoForm
+```
 
-## Domain
-Contém:
+## Fluxo de salvamento (ambos os módulos)
 
-- Entidades
-- Regras de domínio
-- Modelos de negócio
+1. Usuário clica **Salvar**
+2. "Voce deseja salvar o cadastro?" → Sim/Não
+3. Se **Sim** → salva no SQLite
+4. "Voce deseja continuar cadastrando?" → Sim/Não
+   - **Sim** → limpa campos, permite novo cadastro
+   - **Não** → fecha e atualiza o grid automaticamente
 
-Exemplo:
+## Personalizar links
 
-Cliente.cs
-Produto.cs
-Venda.cs
+Em `MainForm.cs` troque os valores abaixo:
+```csharp
+OpenUrl("https://wa.me/5517999999999");           // WhatsApp
+OpenUrl("https://www.facebook.com/SuaPagina");    // Facebook
+OpenUrl("https://github.com/seu-usuario/repo");   // GitHub
+```
 
----
+## Tabelas do banco
 
-## Infrastructure
-
-Responsável por:
-
-- Acesso ao banco de dados
-- Repositórios
-- Conexão SQLite
-
----
-
-# 🔐 Boas Práticas Utilizadas
-
-- Separação de responsabilidades
-- Nomenclatura padronizada
-- Métodos curtos e objetivos
-- Uso de DTOs quando necessário
-- Evitar lógica de negócio na UI
-
----
-
-# ⚙ Padrões Aplicados
-
-- Repository Pattern
-- Camadas bem definidas
-- Injeção de Dependência (se aplicável)
-
----
-
-# 🧪 Testes
-
-(Adicionar caso implemente testes futuramente)
+```sql
+Alunos  (Id, Nome, Telefone, Data, Sala)
+Produtos(Id, Nome, Data, Valor REAL, Estoque INTEGER)
+```
