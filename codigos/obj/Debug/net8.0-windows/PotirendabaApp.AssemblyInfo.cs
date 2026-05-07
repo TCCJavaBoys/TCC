@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PotirendabaApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c04c3b6f4c7ed27fc30d786859376b6760f3c737")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9175ac4122ac291be65f9fa41ca2e0e6c5cd4877")]
 [assembly: System.Reflection.AssemblyProductAttribute("PotirendabaApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PotirendabaApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -10,35 +10,29 @@ namespace PotirendabaApp.Forms
 {
     public class PDVForm : Form
     {
-        // ── Paleta ────────────────────────────────────────────────────────────
-        private static readonly Color Verde      = Color.FromArgb(56, 161, 78);
-        private static readonly Color VerdeDark  = Color.FromArgb(38, 120, 56);
-        private static readonly Color Vermelho   = Color.FromArgb(180, 40, 40);
-        private static readonly Color FundoForm  = Color.FromArgb(235, 238, 235);
-        private static readonly Color FundoBranco= Color.White;
-        private static readonly Color TextoEscuro= Color.FromArgb(40, 40, 40);
-        private static readonly Color TextoCinza = Color.FromArgb(100, 100, 100);
+        private static readonly Color Verde       = Color.FromArgb(56, 161, 78);
+        private static readonly Color VerdeDark   = Color.FromArgb(38, 120, 56);
+        private static readonly Color Vermelho    = Color.FromArgb(180, 40, 40);
+        // Cores dinâmicas via TemaService (não fixas)
+        private static Color FundoForm   => TemaService.FundoForm;
+        private static Color FundoBranco => TemaService.FundoPainel;
+        private static readonly Color TextoEscuro = Color.FromArgb(40, 40, 40);
+        private static readonly Color TextoCinza  = Color.FromArgb(100, 100, 100);
 
-        // ── Estado da venda ───────────────────────────────────────────────────
         private readonly List<ItemVenda> _itens = new();
         private Produto  _produtoAtual = null;
         private Aluno    _alunoAtual   = null;
         public  bool     CancelouVenda { get; private set; } = false;
 
-        // ── Controles — coluna esquerda ───────────────────────────────────────
         private TextBox  _txtCodigo, _txtQtd, _txtValorUnit, _txtDesconto, _txtValorTotal;
         private TextBox  _txtAluno;
         private Label    _lblNomeProduto;
         private Button   _btnLupaProduto, _btnLupaAluno, _btnAddItem;
         private ComboBox _cmbPagamento;
         private Panel    _pAlunoBox, _pPagtoBox;
-
-        // ── Controles — coluna central ────────────────────────────────────────
         private DataGridView _grid;
-
-        // ── Controles — coluna direita ────────────────────────────────────────
-        private Label  _lblTotalValor, _lblTotalQtd;
-        private Button _btnFinalizar, _btnCancelar;
+        private Label    _lblTotalValor, _lblTotalQtd;
+        private Button   _btnFinalizar, _btnCancelar;
 
         public PDVForm()
         {
@@ -53,9 +47,6 @@ namespace PotirendabaApp.Forms
             base.OnFormClosed(e);
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        //  INTERFACE — TableLayoutPanel garante responsividade perfeita
-        // ══════════════════════════════════════════════════════════════════════
         private void InitUI()
         {
             Text            = "PDV - Ponto de Venda";
@@ -66,155 +57,156 @@ namespace PotirendabaApp.Forms
             FormBorderStyle = FormBorderStyle.Sizable;
             MaximizeBox     = true;
 
-            // ── Top bar (Dock=Top) ────────────────────────────────────────────
-            var topBar = new Panel { Dock=DockStyle.Top, Height=54, BackColor=Verde };
-            topBar.Controls.Add(new Label {
+            // ══════════════════════════════════════════════════════════════════
+            // TableLayoutPanel RAIZ: 3 linhas × 3 colunas
+            //
+            //  ┌─────────────────────────────────────────────────────────────┐
+            //  │  Row 0 (54px)  Header verde          [span 3 cols]          │
+            //  ├──────────┬──────────────────────┬───────────────────────────┤
+            //  │Col0 310px│ Col1 *               │ Col2 230px                │
+            //  │ Entrada  │ Grid itens           │ Totais + Botões           │
+            //  │          │                      │                           │
+            //  ├──────────┴──────────────────────┴───────────────────────────┤
+            //  │  Row 2 (48px)  Rodapé verde          [span 3 cols]          │
+            //  └─────────────────────────────────────────────────────────────┘
+            // ══════════════════════════════════════════════════════════════════
+
+            var root = new TableLayoutPanel
+            {
+                Dock=DockStyle.Fill, ColumnCount=3, RowCount=3,
+                CellBorderStyle=TableLayoutPanelCellBorderStyle.None,
+                Padding=Padding.Empty, Margin=Padding.Empty,
+                BackColor=FundoForm
+            };
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 310));
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,  100));
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 230));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 54));   // header verde
+            root.RowStyles.Add(new RowStyle(SizeType.Percent,  100));  // conteúdo
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));   // rodapé verde
+
+            // ── Row 0: Header verde ───────────────────────────────────────────
+            var header = new Panel { Dock=DockStyle.Fill, BackColor=Verde };
+            header.Controls.Add(new Label {
                 Text="🏛", Font=new Font("Segoe UI Emoji",18f), ForeColor=Color.White,
                 AutoSize=false, Size=new Size(50,50), Location=new Point(6,2),
                 TextAlign=ContentAlignment.MiddleCenter, BackColor=Color.Transparent });
-            topBar.Controls.Add(new Label {
+            header.Controls.Add(new Label {
                 Text="PDV - Ponto de Venda",
                 Font=new Font("Segoe UI",13f,FontStyle.Bold), ForeColor=Color.White,
                 AutoSize=true, Location=new Point(62,16), BackColor=Color.Transparent });
-            Controls.Add(topBar);
+            root.Controls.Add(header, 0, 0);
+            root.SetColumnSpan(header, 3);
 
-            // ── Bottom bar (Dock=Bottom) ──────────────────────────────────────
-            Controls.Add(new Panel { Dock=DockStyle.Bottom, Height=48, BackColor=Verde });
-
-            // ── TableLayoutPanel: 3 colunas × 1 linha (Fill) ─────────────────
-            // Col 0 = esquerda (310px fixo)
-            // Col 1 = central  (*)
-            // Col 2 = direita  (230px fixo)
-            var table = new TableLayoutPanel
-            {
-                Dock=DockStyle.Fill,
-                ColumnCount=3, RowCount=1,
-                CellBorderStyle=TableLayoutPanelCellBorderStyle.None,
-                Padding=new Padding(6), Margin=Padding.Empty,
-                BackColor=FundoForm
-            };
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 310));
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,  100));
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 230));
-            table.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-
-            // ── Coluna 0: entrada de dados ────────────────────────────────────
+            // ── Row 1, Col 0: Painel de entrada ──────────────────────────────
             var pEsq = new Panel {
                 Dock=DockStyle.Fill, BackColor=FundoBranco,
-                Padding=Padding.Empty };
-            ConstruirColunaEsquerda(pEsq);
-            table.Controls.Add(pEsq, 0, 0);
+                Padding=new Padding(10,10,8,8) };
+            MontarColunaEsquerda(pEsq);
+            root.Controls.Add(pEsq, 0, 1);
 
-            // ── Coluna 1: grid de itens ───────────────────────────────────────
+            // ── Row 1, Col 1: Grid de itens ───────────────────────────────────
             var pCentro = new Panel { Dock=DockStyle.Fill, BackColor=FundoBranco };
-            ConstruirColunaCentral(pCentro);
-            table.Controls.Add(pCentro, 1, 0);
+            MontarColunaCentral(pCentro);
+            root.Controls.Add(pCentro, 1, 1);
 
-            // ── Coluna 2: totais e ações ──────────────────────────────────────
+            // ── Row 1, Col 2: Totais e ações ──────────────────────────────────
             var pDir = new Panel {
                 Dock=DockStyle.Fill, BackColor=FundoForm,
-                Padding=new Padding(8,8,8,8) };
-            ConstruirColunaDireita(pDir);
-            table.Controls.Add(pDir, 2, 0);
+                Padding=new Padding(8) };
+            MontarColunaDireita(pDir);
+            root.Controls.Add(pDir, 2, 1);
 
-            Controls.Add(table);
+            // ── Row 2: Rodapé verde ───────────────────────────────────────────
+            var rodape = new Panel { Dock=DockStyle.Fill, BackColor=Verde };
+            root.Controls.Add(rodape, 0, 2);
+            root.SetColumnSpan(rodape, 3);
+
+            Controls.Add(root);
         }
 
         // ══════════════════════════════════════════════════════════════════════
-        //  COLUNA ESQUERDA — entradas
+        //  COLUNA CENTRAL — título + DataGridView
         // ══════════════════════════════════════════════════════════════════════
-        private void ConstruirColunaEsquerda(Panel p)
+
+        // ══════════════════════════════════════════════════════════════════════
+        //  COLUNA ESQUERDA — coordenadas absolutas, responsivas via Resize
+        // ══════════════════════════════════════════════════════════════════════
+        private void MontarColunaEsquerda(Panel p)
         {
-            // Usamos TableLayoutPanel interno para empilhar as seções
-            var tbl = new FlowLayoutPanel {
-                Dock=DockStyle.Fill,
-                FlowDirection=FlowDirection.TopDown,
-                WrapContents=false,
-                AutoScroll=true,
-                Padding=new Padding(4,6,4,4),
-                BackColor=FundoBranco };
+            int cy = 8;
 
-            // ── Seção Produto ─────────────────────────────────────────────────
-            tbl.Controls.Add(SecLabel("Produto"));
+            // ── Produto ───────────────────────────────────────────────────────
+            p.Controls.Add(RotuloAbs("Produto", 0, cy, 270)); cy += 20;
 
-            // Linha código + lupa
-            var rowCod = new Panel { Dock=DockStyle.Top, Height=34 };
-            _txtCodigo = Txt("Codigo do produto", 0, 2, 224);
+            _txtCodigo = TxtAbs("Codigo do produto", 0, cy, 234);
             _txtCodigo.KeyDown  += (s,e) => { if(e.KeyCode==Keys.Enter) BuscarPorCodigo(); };
             _txtCodigo.Leave    += (s,e) => { if(!string.IsNullOrWhiteSpace(_txtCodigo.Text)) BuscarPorCodigo(); };
-            _btnLupaProduto = Lupa(228, 2);
+            _btnLupaProduto = BotaoLupa(238, cy);
             _btnLupaProduto.Click += BtnLupaProduto_Click;
-            rowCod.Controls.AddRange(new Control[]{ _txtCodigo, _btnLupaProduto });
-            tbl.Controls.Add(rowCod);
+            p.Controls.AddRange(new Control[]{ _txtCodigo, _btnLupaProduto }); cy += 32;
 
-            // Nome do produto
             _lblNomeProduto = new Label {
-                Text="—", AutoSize=false, Width=280, Height=18,
+                Text="—", Location=new Point(0, cy), Size=new Size(270, 16),
                 Font=new Font("Segoe UI",8.5f,FontStyle.Italic),
-                ForeColor=TextoCinza, BackColor=Color.Transparent,
-                Margin=new Padding(0,0,0,4) };
-            tbl.Controls.Add(_lblNomeProduto);
+                ForeColor=TextoCinza, BackColor=Color.Transparent };
+            p.Controls.Add(_lblNomeProduto); cy += 22;
 
-            // Qtd | Valor
-            tbl.Controls.Add(SecLabel("Quantidade   /   Valor unitário"));
-            var rowQV = new Panel { Dock=DockStyle.Top, Height=32 };
-            _txtQtd = Txt("Qtd", 0, 2, 100);
-            _txtQtd.KeyPress  += (s,e) => { if(!char.IsDigit(e.KeyChar)&&e.KeyChar!='\b') e.Handled=true; };
+            // ── Quantidade / Valor ────────────────────────────────────────────
+            p.Controls.Add(RotuloAbs("Quantidade   /   Valor unitário", 0, cy, 270)); cy += 20;
+
+            _txtQtd = TxtAbs("Qtd", 0, cy, 100);
+            _txtQtd.KeyPress    += (s,e) => { if(!char.IsDigit(e.KeyChar)&&e.KeyChar!='\b') e.Handled=true; };
             _txtQtd.TextChanged += RecalcularItem;
-            _txtValorUnit = Txt("", 108, 2, 148);
+            _txtValorUnit = TxtAbs("", 108, cy, 162);
             _txtValorUnit.ReadOnly  = true;
-            _txtValorUnit.BackColor = Color.FromArgb(245,245,245);
-            rowQV.Controls.AddRange(new Control[]{ _txtQtd, _txtValorUnit });
-            tbl.Controls.Add(rowQV);
+            _txtValorUnit.BackColor = TemaService.FundoInputRO;
+            p.Controls.AddRange(new Control[]{ _txtQtd, _txtValorUnit }); cy += 34;
 
-            // Desconto
-            tbl.Controls.Add(SecLabel("Desconto (ex: 10% ou 1.50)"));
-            _txtDesconto = Txt("Desconto",0,0,280);
+            // ── Desconto ──────────────────────────────────────────────────────
+            p.Controls.Add(RotuloAbs("Desconto (ex: 10% ou 1.50)", 0, cy, 270)); cy += 20;
+            _txtDesconto = TxtAbs("Desconto", 0, cy, 270);
             _txtDesconto.TextChanged += RecalcularItem;
-            tbl.Controls.Add(_txtDesconto);
+            p.Controls.Add(_txtDesconto); cy += 32;
 
-            // Valor total do item
             _txtValorTotal = new TextBox {
-                Width=280, Height=28,
-                Font=new Font("Segoe UI",9f), ReadOnly=true, TabStop=false,
-                BackColor=Color.FromArgb(240,245,240),
+                Location=new Point(0, cy), Size=new Size(270, 28), ReadOnly=true, TabStop=false,
+                Font=new Font("Segoe UI",9f), BackColor=TemaService.FundoInputRO,
                 TextAlign=HorizontalAlignment.Center, Text="Valor total do produto",
-                Margin=new Padding(0,2,0,4) };
-            tbl.Controls.Add(_txtValorTotal);
+                BorderStyle=BorderStyle.FixedSingle };
+            p.Controls.Add(_txtValorTotal); cy += 36;
 
-            // Botão adicionar
             _btnAddItem = new Button {
-                Text="+ Adicionar Item", Width=280, Height=32,
+                Text="+ Adicionar Item", Location=new Point(0, cy), Size=new Size(270, 32),
                 FlatStyle=FlatStyle.Flat, BackColor=VerdeDark, ForeColor=Color.White,
-                Font=new Font("Segoe UI",9f,FontStyle.Bold), Cursor=Cursors.Hand,
-                Margin=new Padding(0,2,0,6) };
+                Font=new Font("Segoe UI",9f,FontStyle.Bold), Cursor=Cursors.Hand };
             _btnAddItem.FlatAppearance.BorderSize=0;
             _btnAddItem.MouseEnter += (s,e) => _btnAddItem.BackColor=Verde;
             _btnAddItem.MouseLeave += (s,e) => _btnAddItem.BackColor=VerdeDark;
             _btnAddItem.Click += BtnAddItem_Click;
-            tbl.Controls.Add(_btnAddItem);
+            p.Controls.Add(_btnAddItem); cy += 44;
 
-            // Separador
-            tbl.Controls.Add(new Panel { Width=280, Height=1, BackColor=Color.FromArgb(210,210,210), Margin=new Padding(0,8,0,8) });
+            p.Controls.Add(new Panel { Location=new Point(0,cy), Size=new Size(270,1),
+                BackColor=Color.FromArgb(200,200,200) }); cy += 14;
 
-            // ── Seção Aluno ───────────────────────────────────────────────────
-            _pAlunoBox = new Panel { Width=280, Height=58, BackColor=Color.Transparent };
-            _pAlunoBox.Controls.Add(SecLabel("Aluno"));
-            var rowAluno = new Panel { Location=new Point(0,20), Size=new Size(260,32), BackColor=Color.Transparent };
-            _txtAluno = Txt("Selecionar aluno...", 0, 2, 226);
+            // ── Aluno ─────────────────────────────────────────────────────────
+            _pAlunoBox = new Panel { Location=new Point(0,cy), Size=new Size(270,54),
+                BackColor=Color.Transparent };
+            _pAlunoBox.Controls.Add(RotuloAbs("Aluno", 0, 0, 270));
+            _txtAluno = TxtAbs("Selecionar aluno...", 0, 20, 234);
             _txtAluno.ReadOnly=true; _txtAluno.Cursor=Cursors.Hand;
             _txtAluno.Click += BtnLupaAluno_Click;
-            _btnLupaAluno = Lupa(228, 2);
+            _btnLupaAluno = BotaoLupa(238, 20);
             _btnLupaAluno.Click += BtnLupaAluno_Click;
-            rowAluno.Controls.AddRange(new Control[]{ _txtAluno, _btnLupaAluno });
-            _pAlunoBox.Controls.Add(rowAluno);
-            tbl.Controls.Add(_pAlunoBox);
+            _pAlunoBox.Controls.AddRange(new Control[]{ _txtAluno, _btnLupaAluno });
+            p.Controls.Add(_pAlunoBox); cy += 62;
 
-            // ── Seção Forma de Pagamento ──────────────────────────────────────
-            _pPagtoBox = new Panel { Width=280, Height=58, BackColor=Color.Transparent };
-            _pPagtoBox.Controls.Add(SecLabel("Forma de pagamento"));
+            // ── Forma de Pagamento ────────────────────────────────────────────
+            _pPagtoBox = new Panel { Location=new Point(0,cy), Size=new Size(270,54),
+                BackColor=Color.Transparent };
+            _pPagtoBox.Controls.Add(RotuloAbs("Forma de pagamento", 0, 0, 270));
             _cmbPagamento = new ComboBox {
-                Location=new Point(0,22), Size=new Size(270,28),
+                Location=new Point(0,20), Size=new Size(270,28),
                 DropDownStyle=ComboBoxStyle.DropDownList,
                 Font=new Font("Segoe UI",9f), FlatStyle=FlatStyle.Flat };
             _cmbPagamento.Items.Add("Selecione");
@@ -222,21 +214,26 @@ namespace PotirendabaApp.Forms
             _cmbPagamento.SelectedIndex=0;
             _cmbPagamento.SelectedIndexChanged += (s,e) => LimparDestaque(_pPagtoBox);
             _pPagtoBox.Controls.Add(_cmbPagamento);
-            tbl.Controls.Add(_pPagtoBox);
-
-            p.Controls.Add(tbl);
+            p.Controls.Add(_pPagtoBox);
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        //  COLUNA CENTRAL — grid de itens
-        // ══════════════════════════════════════════════════════════════════════
-        private void ConstruirColunaCentral(Panel p)
+        private static Label RotuloAbs(string t, int x, int y, int w) => new Label {
+            Text=t, Location=new Point(x,y), Size=new Size(w,18), AutoSize=false,
+            Font=new Font("Segoe UI",8.5f,FontStyle.Bold), ForeColor=Color.FromArgb(40,40,40),
+            BackColor=Color.Transparent };
+
+        private static TextBox TxtAbs(string ph, int x, int y, int w) => new TextBox {
+            PlaceholderText=ph, Location=new Point(x,y), Size=new Size(w,26),
+            Font=new Font("Segoe UI",9f), BackColor=TemaService.FundoInput,
+            BorderStyle=BorderStyle.FixedSingle };
+
+        private void MontarColunaCentral(Panel p)
         {
             var lblTitulo = new Label {
-                Text="Produtos", Dock=DockStyle.Top, Height=34,
-                Font=new Font("Segoe UI",12f,FontStyle.Bold),
-                ForeColor=TextoEscuro, TextAlign=ContentAlignment.MiddleLeft,
-                Padding=new Padding(8,0,0,0), BackColor=FundoBranco };
+                Text="Produtos", Dock=DockStyle.Top, Height=36,
+                Font=new Font("Segoe UI",12f,FontStyle.Bold), ForeColor=TextoEscuro,
+                TextAlign=ContentAlignment.MiddleLeft,
+                Padding=new Padding(8,0,0,0), BackColor=Color.Transparent };
             p.Controls.Add(lblTitulo);
 
             _grid = new DataGridView {
@@ -250,12 +247,14 @@ namespace PotirendabaApp.Forms
                 AutoSizeColumnsMode=DataGridViewAutoSizeColumnsMode.Fill,
                 GridColor=Color.FromArgb(220,220,220),
                 EnableHeadersVisualStyles=false };
-            _grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(210,210,210);
+            _grid.ColumnHeadersDefaultCellStyle.BackColor = TemaService.GridCabecalho;
             _grid.ColumnHeadersDefaultCellStyle.ForeColor = TextoEscuro;
             _grid.ColumnHeadersDefaultCellStyle.Font      = new Font("Segoe UI",9f,FontStyle.Bold);
+            _grid.DefaultCellStyle.BackColor = TemaService.FundoPainel;
+            _grid.DefaultCellStyle.ForeColor = TextoEscuro;
             _grid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(180,220,180);
             _grid.DefaultCellStyle.SelectionForeColor = Color.Black;
-            _grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245,252,245);
+            _grid.AlternatingRowsDefaultCellStyle.BackColor = TemaService.GridAlternada;
 
             _grid.Columns.Add(new DataGridViewTextBoxColumn { Name="cId",   HeaderText="ID",      FillWeight=10 });
             _grid.Columns.Add(new DataGridViewTextBoxColumn { Name="cNome", HeaderText="Produto",  FillWeight=44 });
@@ -265,37 +264,34 @@ namespace PotirendabaApp.Forms
             _grid.Columns.Add(new DataGridViewButtonColumn  {
                 Name="cRem", HeaderText="", Text="✕",
                 UseColumnTextForButtonValue=true, FillWeight=8, FlatStyle=FlatStyle.Flat });
-
             _grid.CellClick += Grid_CellClick;
             p.Controls.Add(_grid);
         }
 
         // ══════════════════════════════════════════════════════════════════════
-        //  COLUNA DIREITA — totais e ações
+        //  COLUNA DIREITA — TableLayoutPanel com totais e botões
         // ══════════════════════════════════════════════════════════════════════
-        private void ConstruirColunaDireita(Panel p)
+        private void MontarColunaDireita(Panel p)
         {
-            // Usamos TableLayoutPanel vertical: tudo empilhado
             var tbl = new TableLayoutPanel {
                 Dock=DockStyle.Fill, ColumnCount=1, RowCount=8,
                 CellBorderStyle=TableLayoutPanelCellBorderStyle.None,
-                Padding=Padding.Empty, Margin=Padding.Empty,
-                BackColor=FundoForm };
+                Padding=Padding.Empty, Margin=Padding.Empty, BackColor=FundoForm };
             tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));  // label "Total de venda"
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 80));  // caixa total valor
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));  // label "Total produtos"
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));  // caixa total qtd
-            tbl.RowStyles.Add(new RowStyle(SizeType.Percent,  100)); // espaço flexível
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 4));   // gap
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));  // btn Finalizar
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));  // btn Cancelar
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 80));
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
+            tbl.RowStyles.Add(new RowStyle(SizeType.Percent,  100));
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 4));
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
 
-            tbl.Controls.Add(LblDireita("Total de venda"),    0, 0);
+            tbl.Controls.Add(LblDir("Total de venda"), 0, 0);
 
             var boxTotal = new Panel { Dock=DockStyle.Fill, BackColor=FundoBranco };
             boxTotal.Paint += (s,e) => {
-                using var pen=new System.Drawing.Pen(Color.FromArgb(180,180,180),1);
+                using var pen = new System.Drawing.Pen(Color.FromArgb(180,180,180),1);
                 e.Graphics.DrawRectangle(pen,0,0,boxTotal.Width-1,boxTotal.Height-1); };
             _lblTotalValor = new Label {
                 Dock=DockStyle.Fill, Text="0,00",
@@ -304,11 +300,11 @@ namespace PotirendabaApp.Forms
             boxTotal.Controls.Add(_lblTotalValor);
             tbl.Controls.Add(boxTotal, 0, 1);
 
-            tbl.Controls.Add(LblDireita("Total de produtos"), 0, 2);
+            tbl.Controls.Add(LblDir("Total de produtos"), 0, 2);
 
             var boxQtd = new Panel { Dock=DockStyle.Fill, BackColor=FundoBranco };
             boxQtd.Paint += (s,e) => {
-                using var pen=new System.Drawing.Pen(Color.FromArgb(180,180,180),1);
+                using var pen = new System.Drawing.Pen(Color.FromArgb(180,180,180),1);
                 e.Graphics.DrawRectangle(pen,0,0,boxQtd.Width-1,boxQtd.Height-1); };
             _lblTotalQtd = new Label {
                 Dock=DockStyle.Fill, Text="0",
@@ -317,27 +313,16 @@ namespace PotirendabaApp.Forms
             boxQtd.Controls.Add(_lblTotalQtd);
             tbl.Controls.Add(boxQtd, 0, 3);
 
-            tbl.Controls.Add(new Panel { BackColor=Color.Transparent }, 0, 4); // espaço
+            tbl.Controls.Add(new Panel { BackColor=Color.Transparent }, 0, 4);
+            tbl.Controls.Add(new Panel { BackColor=Color.Transparent }, 0, 5);
 
-            tbl.Controls.Add(new Panel { BackColor=Color.Transparent }, 0, 5); // gap
-
-            _btnFinalizar = new Button {
-                Dock=DockStyle.Fill, Text="Finalizar",
-                FlatStyle=FlatStyle.Flat, BackColor=Color.FromArgb(45,140,65),
-                ForeColor=Color.White, Font=new Font("Segoe UI",13f,FontStyle.Bold),
-                Cursor=Cursors.Hand };
-            _btnFinalizar.FlatAppearance.BorderSize=0;
+            _btnFinalizar = BotaoAcao("Finalizar", Color.FromArgb(45,140,65));
             _btnFinalizar.MouseEnter += (s,e) => _btnFinalizar.BackColor=Verde;
             _btnFinalizar.MouseLeave += (s,e) => _btnFinalizar.BackColor=Color.FromArgb(45,140,65);
             _btnFinalizar.Click += BtnFinalizar_Click;
             tbl.Controls.Add(_btnFinalizar, 0, 6);
 
-            _btnCancelar = new Button {
-                Dock=DockStyle.Fill, Text="Cancelar",
-                FlatStyle=FlatStyle.Flat, BackColor=Vermelho,
-                ForeColor=Color.White, Font=new Font("Segoe UI",13f,FontStyle.Bold),
-                Cursor=Cursors.Hand };
-            _btnCancelar.FlatAppearance.BorderSize=0;
+            _btnCancelar = BotaoAcao("Cancelar", Vermelho);
             _btnCancelar.MouseEnter += (s,e) => _btnCancelar.BackColor=Color.FromArgb(210,55,55);
             _btnCancelar.MouseLeave += (s,e) => _btnCancelar.BackColor=Vermelho;
             _btnCancelar.Click += BtnCancelar_Click;
@@ -349,46 +334,41 @@ namespace PotirendabaApp.Forms
         // ══════════════════════════════════════════════════════════════════════
         //  HELPERS DE UI
         // ══════════════════════════════════════════════════════════════════════
-        private Label SecLabel(string t) => new Label {
-            Text=t, AutoSize=false, Width=280, Height=18,
-            Font=new Font("Segoe UI",8.5f,FontStyle.Bold), ForeColor=TextoEscuro,
-            BackColor=Color.Transparent,
-            Margin=new Padding(0,6,0,2) };
-
-        private Label LblDireita(string t) => new Label {
-            Text=t, Dock=DockStyle.Fill,
-            Font=new Font("Segoe UI",10f,FontStyle.Bold), ForeColor=TextoEscuro,
+        private static Label LblDir(string t) => new Label {
+            Dock=DockStyle.Fill, Text=t,
+            Font=new Font("Segoe UI",10f,FontStyle.Bold), ForeColor=Color.FromArgb(40,40,40),
             TextAlign=ContentAlignment.BottomLeft, BackColor=Color.Transparent };
 
-        private TextBox Txt(string ph, int x, int y, int w) => new TextBox {
-            PlaceholderText=ph, Location=new Point(x,y), Size=new Size(w,26),
-            Font=new Font("Segoe UI",9f), BackColor=FundoBranco,
-            BorderStyle=BorderStyle.FixedSingle };
 
-        private Button Lupa(int x, int y) {
-            var b=new Button { Text="🔍", Location=new Point(x,y), Size=new Size(30,26),
-                FlatStyle=FlatStyle.Flat, BackColor=VerdeDark, ForeColor=Color.White,
-                Font=new Font("Segoe UI Emoji",10f), Cursor=Cursors.Hand };
+
+        private static Button BotaoLupa(int x, int y) {
+            var b = new Button { Text="🔍", Location=new Point(x,y), Size=new Size(30,26),
+                FlatStyle=FlatStyle.Flat, BackColor=Color.FromArgb(38,120,56),
+                ForeColor=Color.White, Font=new Font("Segoe UI Emoji",10f), Cursor=Cursors.Hand };
             b.FlatAppearance.BorderSize=0;
-            b.MouseEnter += (s,e) => b.BackColor=Verde;
-            b.MouseLeave += (s,e) => b.BackColor=VerdeDark;
+            b.MouseEnter += (s,e) => b.BackColor=Color.FromArgb(56,161,78);
+            b.MouseLeave += (s,e) => b.BackColor=Color.FromArgb(38,120,56);
+            return b; }
+
+        private static Button BotaoAcao(string t, Color cor) {
+            var b = new Button { Dock=DockStyle.Fill, Text=t,
+                FlatStyle=FlatStyle.Flat, BackColor=cor, ForeColor=Color.White,
+                Font=new Font("Segoe UI",13f,FontStyle.Bold), Cursor=Cursors.Hand };
+            b.FlatAppearance.BorderSize=0;
             return b; }
 
         // ══════════════════════════════════════════════════════════════════════
-        //  LÓGICA — PRODUTO
+        //  LÓGICA
         // ══════════════════════════════════════════════════════════════════════
         private void BuscarPorCodigo()
         {
             if (!int.TryParse(_txtCodigo.Text.Trim(), out int id)) return;
             var prod = ProdutoService.BuscarPorId(id);
             if (prod == null) { MostrarAviso("Produto nao encontrado."); return; }
-            if (!prod.Ativo)
-            {
+            if (!prod.Ativo) {
                 MostrarAviso($"Produto '{prod.Nome}' esta inativo.");
                 _lblNomeProduto.Text = $"[INATIVO] {prod.Nome}";
-                _lblNomeProduto.ForeColor = Color.FromArgb(200,60,60);
-                return;
-            }
+                _lblNomeProduto.ForeColor = Color.FromArgb(200,60,60); return; }
             _lblNomeProduto.ForeColor = TextoCinza;
             PreencherProduto(prod);
         }
@@ -396,74 +376,55 @@ namespace PotirendabaApp.Forms
         private void BtnLupaProduto_Click(object sender, EventArgs e)
         {
             using var modal = new ModalProdutos();
-            if (modal.ShowDialog(this) == DialogResult.OK && modal.ProdutoSelecionado != null)
+            if (modal.ShowDialog(this)==DialogResult.OK && modal.ProdutoSelecionado!=null)
                 PreencherProduto(modal.ProdutoSelecionado);
         }
 
         private void PreencherProduto(Produto prod)
         {
-            _produtoAtual       = prod;
-            _txtCodigo.Text     = prod.Id.ToString();
-            _lblNomeProduto.Text= prod.Nome;
-            _txtValorUnit.Text  = $"R$ {prod.Valor:F2}";
-            _txtQtd.Text        = "1";
-            _txtQtd.Enabled     = true;
-            _txtDesconto.Text   = "";
+            _produtoAtual        = prod;
+            _txtCodigo.Text      = prod.Id.ToString();
+            _lblNomeProduto.Text = prod.Nome;
+            _txtValorUnit.Text   = $"R$ {prod.Valor:F2}";
+            _txtQtd.Text         = "1";
+            _txtQtd.Enabled      = true;
+            _txtDesconto.Text    = "";
             RecalcularItem(null, null);
             _txtQtd.Focus();
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        //  LÓGICA — RECÁLCULO
-        // ══════════════════════════════════════════════════════════════════════
         private void RecalcularItem(object sender, EventArgs e)
         {
             if (_produtoAtual == null) return;
             int.TryParse(_txtQtd.Text.Trim(), out int qtd);
             if (qtd < 1) qtd = 1;
-            decimal total = VendaService.CalcularValorItem(
-                _produtoAtual.Valor, qtd, _txtDesconto.Text);
+            decimal total = VendaService.CalcularValorItem(_produtoAtual.Valor, qtd, _txtDesconto.Text);
             _txtValorTotal.Text = $"R$ {total:F2}";
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        //  LÓGICA — ADICIONAR ITEM
-        // ══════════════════════════════════════════════════════════════════════
         private void BtnAddItem_Click(object sender, EventArgs e)
         {
             if (_produtoAtual == null) { MostrarAviso("Selecione um produto primeiro."); return; }
             int.TryParse(_txtQtd.Text.Trim(), out int qtd);
             if (qtd < 1) qtd = 1;
-
-            decimal total = VendaService.CalcularValorItem(
-                _produtoAtual.Valor, qtd, _txtDesconto.Text);
-
-            var existente = _itens.Find(i => i.ProdutoId == _produtoAtual.Id);
-            if (existente != null)
-            {
+            decimal total = VendaService.CalcularValorItem(_produtoAtual.Valor, qtd, _txtDesconto.Text);
+            var existente = _itens.Find(i => i.ProdutoId==_produtoAtual.Id);
+            if (existente != null) {
                 existente.Quantidade += qtd;
-                existente.Desconto   += _produtoAtual.Valor * qtd - total;
-            }
-            else
-            {
+                existente.Desconto   += _produtoAtual.Valor*qtd - total;
+            } else {
                 _itens.Add(new ItemVenda {
-                    ProdutoId   = _produtoAtual.Id,
-                    NomeProduto = _produtoAtual.Nome,
-                    Quantidade  = qtd,
-                    ValorUnit   = _produtoAtual.Valor,
-                    Desconto    = _produtoAtual.Valor * qtd - total });
-            }
+                    ProdutoId=_produtoAtual.Id, NomeProduto=_produtoAtual.Nome,
+                    Quantidade=qtd, ValorUnit=_produtoAtual.Valor,
+                    Desconto=_produtoAtual.Valor*qtd - total }); }
             AtualizarGridETotais();
             LimparEntrada();
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        //  LÓGICA — ALUNO
-        // ══════════════════════════════════════════════════════════════════════
         private void BtnLupaAluno_Click(object sender, EventArgs e)
         {
             using var modal = new ModalAlunos();
-            if (modal.ShowDialog(this) == DialogResult.OK && modal.AlunoSelecionado != null)
+            if (modal.ShowDialog(this)==DialogResult.OK && modal.AlunoSelecionado!=null)
             {
                 _alunoAtual    = modal.AlunoSelecionado;
                 _txtAluno.Text = $"{_alunoAtual.Nome} (ID {_alunoAtual.Id})";
@@ -471,9 +432,6 @@ namespace PotirendabaApp.Forms
             }
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        //  LÓGICA — GRID
-        // ══════════════════════════════════════════════════════════════════════
         private void AtualizarGridETotais()
         {
             _grid.Rows.Clear();
@@ -481,10 +439,8 @@ namespace PotirendabaApp.Forms
             foreach (var item in _itens)
             {
                 totalVenda += item.ValorTotal;
-                _grid.Rows.Add(
-                    item.ProdutoId, item.NomeProduto,
-                    $"{item.Quantidade}x",
-                    $"R$ {item.ValorUnit:F2}",
+                _grid.Rows.Add(item.ProdutoId, item.NomeProduto,
+                    $"{item.Quantidade}x", $"R$ {item.ValorUnit:F2}",
                     $"R$ {item.ValorTotal:F2}", "✕");
             }
             _lblTotalValor.Text = totalVenda.ToString("F2").Replace(".",",");
@@ -498,56 +454,33 @@ namespace PotirendabaApp.Forms
             AtualizarGridETotais();
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        //  LÓGICA — FINALIZAR
-        // ══════════════════════════════════════════════════════════════════════
         private void BtnFinalizar_Click(object sender, EventArgs e)
         {
-            LimparDestaque(_pAlunoBox);
-            LimparDestaque(_pPagtoBox);
-
+            LimparDestaque(_pAlunoBox); LimparDestaque(_pPagtoBox);
             string formaPgto = _cmbPagamento.SelectedIndex > 0
                 ? _cmbPagamento.SelectedItem.ToString() : "";
             string nomeAluno = _alunoAtual?.Nome ?? "";
-
-            var resultado = VendaService.Validar(_itens, nomeAluno, formaPgto);
-            if (!resultado.Valido)
-            {
-                if (resultado.Campo == "aluno")    DestacarPainel(_pAlunoBox);
-                if (resultado.Campo == "pagamento") DestacarPainel(_pPagtoBox);
-                MostrarAviso(resultado.Mensagem);
-                return;
-            }
-
-            decimal totalVenda = 0;
-            foreach (var i in _itens) totalVenda += i.ValorTotal;
-
-            var conf = MessageBox.Show(
-                $"Confirmar venda?\n\nAluno: {nomeAluno}\nPagamento: {formaPgto}\nTotal: R$ {totalVenda:F2}",
-                "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (conf != DialogResult.Yes) return;
-
-            try
-            {
+            var res = VendaService.Validar(_itens, nomeAluno, formaPgto);
+            if (!res.Valido) {
+                if (res.Campo=="aluno")     DestacarPainel(_pAlunoBox);
+                if (res.Campo=="pagamento") DestacarPainel(_pPagtoBox);
+                MostrarAviso(res.Mensagem); return; }
+            decimal tot = 0; foreach(var i in _itens) tot += i.ValorTotal;
+            if (MessageBox.Show(
+                $"Confirmar venda?\n\nAluno: {nomeAluno}\nPagamento: {formaPgto}\nTotal: R$ {tot:F2}",
+                "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question)!=DialogResult.Yes) return;
+            try {
                 VendaService.Finalizar(_itens, nomeAluno, formaPgto);
-                MessageBox.Show($"Venda finalizada!\nTotal: R$ {totalVenda:F2}",
+                MessageBox.Show($"Venda finalizada!\nTotal: R$ {tot:F2}",
                     "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 LimparVenda();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Erro ao salvar: {ex.Message}",
-                    "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            } catch(Exception ex) {
+                MessageBox.Show($"Erro: {ex.Message}","Erro",MessageBoxButtons.OK,MessageBoxIcon.Error); }
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        //  LÓGICA — CANCELAR
-        // ══════════════════════════════════════════════════════════════════════
         private void BtnCancelar_Click(object sender, EventArgs e)
         {
-            using var modal = new ConfirmacaoModal(
-                "Voce tem certeza que gostaria de cancelar a venda?");
+            using var modal = new ConfirmacaoModal("Voce tem certeza que gostaria de cancelar a venda?");
             modal.StartPosition = FormStartPosition.CenterParent;
             modal.ShowDialog(this);
             if (!modal.Confirmado) return;
@@ -557,9 +490,6 @@ namespace PotirendabaApp.Forms
             Close();
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        //  UTILITÁRIOS
-        // ══════════════════════════════════════════════════════════════════════
         private void LimparEntrada()
         {
             _produtoAtual        = null;
@@ -575,23 +505,56 @@ namespace PotirendabaApp.Forms
 
         private void LimparVenda()
         {
-            _itens.Clear();
-            _alunoAtual             = null;
-            _txtAluno.Text          = "";
-            _cmbPagamento.SelectedIndex = 0;
-            AtualizarGridETotais();
-            LimparEntrada();
+            _itens.Clear(); _alunoAtual=null; _txtAluno.Text="";
+            _cmbPagamento.SelectedIndex=0;
+            AtualizarGridETotais(); LimparEntrada();
         }
 
-        private static void DestacarPainel(Panel p) =>
-            p.BackColor = Color.FromArgb(255, 235, 235);
-
-        private static void LimparDestaque(Panel p) =>
-            p.BackColor = Color.Transparent;
-
+        private static void DestacarPainel(Panel p) => p.BackColor=Color.FromArgb(255,235,235);
+        private static void LimparDestaque(Panel p) => p.BackColor=Color.Transparent;
         private void MostrarAviso(string msg) =>
-            MessageBox.Show(msg, "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(msg,"Aviso",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+        // ══════════════════════════════════════════════════════════════════════
+        //  TEMA — atualiza todos os controles em tempo real
+        // ══════════════════════════════════════════════════════════════════════
+        private void AplicarTema()
+        {
+            // Aplica tema recursivamente em todos os controles
+            TemaAplicador.AplicarEm(this);
 
-        private void AplicarTema() => TemaAplicador.AplicarEm(this);
+            // Controles com cores fixas que precisam de tratamento especial:
+
+            // Grid de itens da venda
+            if (_grid != null)
+            {
+                _grid.BackgroundColor                          = TemaService.FundoPainel;
+                _grid.DefaultCellStyle.BackColor               = TemaService.FundoPainel;
+                _grid.DefaultCellStyle.ForeColor               = TemaService.TextoPrincipal;
+                _grid.DefaultCellStyle.SelectionBackColor      = Color.FromArgb(180, 220, 180);
+                _grid.DefaultCellStyle.SelectionForeColor      = TemaService.TextoPrincipal;
+                _grid.AlternatingRowsDefaultCellStyle.BackColor= TemaService.GridAlternada;
+                _grid.AlternatingRowsDefaultCellStyle.ForeColor= TemaService.TextoPrincipal;
+                _grid.ColumnHeadersDefaultCellStyle.BackColor  = TemaService.GridCabecalho;
+                _grid.ColumnHeadersDefaultCellStyle.ForeColor  = Color.FromArgb(20, 20, 20);
+                _grid.GridColor = TemaService.Borda;
+                _grid.Invalidate();
+            }
+
+            // Valor unitário (read-only) — cor diferenciada
+            if (_txtValorUnit != null)
+                _txtValorUnit.BackColor = TemaService.FundoInputRO;
+
+            // Valor total do item (read-only)
+            if (_txtValorTotal != null)
+                _txtValorTotal.BackColor = TemaService.FundoInputRO;
+
+            // Painel do aluno com destaque de validação deve manter transparência
+            if (_pAlunoBox != null && _pAlunoBox.BackColor != Color.FromArgb(255, 235, 235))
+                _pAlunoBox.BackColor = Color.Transparent;
+            if (_pPagtoBox != null && _pPagtoBox.BackColor != Color.FromArgb(255, 235, 235))
+                _pPagtoBox.BackColor = Color.Transparent;
+        }
+
+
     }
 }
