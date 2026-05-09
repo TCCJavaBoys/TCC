@@ -67,7 +67,7 @@ namespace PotirendabaApp.Services
                 });
             }
 
-            string titulo    = "Relatório de Vendas";
+            string titulo    = "Relatório de Vendas por Período";
             string subtitulo = $"Período: {dataIni:dd/MM/yyyy} até {dataFim:dd/MM/yyyy}  |  " +
                                $"Total: R$ {totalGeral:F2}  |  Registros: {filtradas.Count}";
 
@@ -102,7 +102,7 @@ namespace PotirendabaApp.Services
                                $"Ativos: {produtos.FindAll(p => p.Ativo).Count}  |  " +
                                $"Inativos: {produtos.FindAll(p => !p.Ativo).Count}";
 
-            ExibirPreview("Relatório de Produtos", subtitulo, colunas, larguras, linhas);
+            ExibirPreview("Relatório de Estoque de Produtos", subtitulo, colunas, larguras, linhas);
         }
 
         // ═════════════════════════════════════════════════════════════════════
@@ -133,7 +133,121 @@ namespace PotirendabaApp.Services
                                $"Ativos: {alunos.FindAll(a => a.Ativo).Count}  |  " +
                                $"Inativos: {alunos.FindAll(a => !a.Ativo).Count}";
 
-            ExibirPreview("Relatório de Clientes", subtitulo, colunas, larguras, linhas);
+            ExibirPreview("Relatório de Cadastro de Clientes", subtitulo, colunas, larguras, linhas);
+        }
+
+
+        // ═════════════════════════════════════════════════════════════════════
+        //  RELATÓRIO 4 — Caixa do Dia
+        // ═════════════════════════════════════════════════════════════════════
+        public static void ImprimirCaixaDia(DateTime data)
+        {
+            var todasVendas = DatabaseHelper.ListarVendas();
+            var vendas = new List<Venda>();
+            foreach (var v in todasVendas)
+                if (DateTime.TryParse(v.Data, out DateTime dv) && dv.Date == data.Date)
+                    vendas.Add(v);
+
+            var totaisPgto = new Dictionary<string, decimal>();
+            decimal totalGeral = 0;
+            foreach (var v in vendas)
+            {
+                string pgto = string.IsNullOrWhiteSpace(v.FormaPagamento) ? "Não informado" : v.FormaPagamento;
+                if (!totaisPgto.ContainsKey(pgto)) totaisPgto[pgto] = 0;
+                totaisPgto[pgto] += v.ValorTotal;
+                totalGeral       += v.ValorTotal;
+            }
+
+            var colunas  = new[] { "Forma de Pagamento", "Qtd. Vendas", "Total Arrecadado" };
+            var larguras = new[] { 200, 100, 160 };
+            var linhas   = new List<string[]>();
+
+            foreach (var kv in totaisPgto)
+            {
+                int qtd = vendas.FindAll(v => (v.FormaPagamento ?? "Não informado") == kv.Key).Count;
+                linhas.Add(new[] { kv.Key, qtd.ToString(), $"R$ {kv.Value:F2}" });
+            }
+            linhas.Add(new[] { "TOTAL GERAL", vendas.Count.ToString(), $"R$ {totalGeral:F2}" });
+
+            string subtitulo = $"Data: {data:dd/MM/yyyy}  |  Vendas: {vendas.Count}  |  Total: R$ {totalGeral:F2}";
+            ExibirPreview("Relatório de Caixa do Dia", subtitulo, colunas, larguras, linhas);
+        }
+
+        // ═════════════════════════════════════════════════════════════════════
+        //  RELATÓRIO 5 — Produtos Mais Vendidos
+        // ═════════════════════════════════════════════════════════════════════
+        public static void ImprimirProdutosMaisVendidos(DateTime dataIni, DateTime dataFim)
+        {
+            var todasVendas = DatabaseHelper.ListarVendas();
+            var ranking = new Dictionary<string, (int qtd, decimal total)>();
+
+            foreach (var v in todasVendas)
+            {
+                if (!DateTime.TryParse(v.Data, out DateTime dv)) continue;
+                if (dv.Date < dataIni.Date || dv.Date > dataFim.Date) continue;
+                var vComItens = DatabaseHelper.BuscarVendaComItens(v.Id);
+                if (vComItens?.Itens == null) continue;
+                foreach (var item in vComItens.Itens)
+                {
+                    string nome = item.NomeProduto ?? $"Produto {item.ProdutoId}";
+                    if (!ranking.ContainsKey(nome)) ranking[nome] = (0, 0m);
+                    ranking[nome] = (ranking[nome].qtd + item.Quantidade,
+                                     ranking[nome].total + item.ValorTotal);
+                }
+            }
+
+            var lista = new List<(string nome, int qtd, decimal total)>();
+            foreach (var kv in ranking)
+                lista.Add((kv.Key, kv.Value.qtd, kv.Value.total));
+            lista.Sort((a, b) => b.qtd.CompareTo(a.qtd));
+
+            var colunas  = new[] { "Pos.", "Produto", "Qtd. Vendida", "Total Arrecadado" };
+            var larguras = new[] { 40, 200, 110, 150 };
+            var linhas   = new List<string[]>();
+            int pos = 1;
+            foreach (var item in lista)
+                linhas.Add(new[] { $"{pos++}°", item.nome, item.qtd.ToString(), $"R$ {item.total:F2}" });
+            if (linhas.Count == 0)
+                linhas.Add(new[] { "-", "Nenhuma venda no período", "-", "-" });
+
+            string subtitulo = $"Período: {dataIni:dd/MM/yyyy} até {dataFim:dd/MM/yyyy}  |  {lista.Count} produto(s)";
+            ExibirPreview("Relatório de Produtos Mais Vendidos", subtitulo, colunas, larguras, linhas);
+        }
+
+        // ═════════════════════════════════════════════════════════════════════
+        //  RELATÓRIO 6 — Vendas por Cliente
+        // ═════════════════════════════════════════════════════════════════════
+        public static void ImprimirVendasPorCliente(DateTime dataIni, DateTime dataFim)
+        {
+            var todasVendas = DatabaseHelper.ListarVendas();
+            var ranking = new Dictionary<string, (int qtd, decimal total)>();
+
+            foreach (var v in todasVendas)
+            {
+                if (!DateTime.TryParse(v.Data, out DateTime dv)) continue;
+                if (dv.Date < dataIni.Date || dv.Date > dataFim.Date) continue;
+                string cliente = string.IsNullOrWhiteSpace(v.Cliente) ? "Não identificado" : v.Cliente;
+                if (!ranking.ContainsKey(cliente)) ranking[cliente] = (0, 0m);
+                ranking[cliente] = (ranking[cliente].qtd + 1,
+                                    ranking[cliente].total + v.ValorTotal);
+            }
+
+            var lista = new List<(string nome, int qtd, decimal total)>();
+            foreach (var kv in ranking)
+                lista.Add((kv.Key, kv.Value.qtd, kv.Value.total));
+            lista.Sort((a, b) => b.total.CompareTo(a.total));
+
+            var colunas  = new[] { "Pos.", "Cliente", "Qtd. Compras", "Total Gasto" };
+            var larguras = new[] { 40, 210, 110, 140 };
+            var linhas   = new List<string[]>();
+            int pos = 1;
+            foreach (var item in lista)
+                linhas.Add(new[] { $"{pos++}°", item.nome, item.qtd.ToString(), $"R$ {item.total:F2}" });
+            if (linhas.Count == 0)
+                linhas.Add(new[] { "-", "Nenhuma venda no período", "-", "-" });
+
+            string subtitulo = $"Período: {dataIni:dd/MM/yyyy} até {dataFim:dd/MM/yyyy}  |  {lista.Count} cliente(s)";
+            ExibirPreview("Relatório de Vendas por Cliente", subtitulo, colunas, larguras, linhas);
         }
 
         // ═════════════════════════════════════════════════════════════════════

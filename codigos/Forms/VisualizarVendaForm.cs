@@ -3,7 +3,6 @@ using PotirendabaApp.Services;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
-using PotirendabaApp.Data;
 using PotirendabaApp.Models;
 
 namespace PotirendabaApp.Forms
@@ -31,7 +30,7 @@ namespace PotirendabaApp.Forms
 
         public VisualizarVendaForm(int vendaId)
         {
-            _venda = DatabaseHelper.BuscarVendaComItens(vendaId);
+            _venda = VendaService.BuscarComItens(vendaId);
             if (_venda == null)
             {
                 MessageBox.Show("Venda nao encontrada.", "Erro",
@@ -197,7 +196,8 @@ namespace PotirendabaApp.Forms
                 AlternatingRowsDefaultCellStyle =
                     { BackColor = Color.FromArgb(245, 252, 245) }
             };
-            _grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(210, 210, 210);
+            _grid.ColumnHeadersDefaultCellStyle.BackColor = TemaService.GridCabecalho;
+            _grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(20, 20, 20);
             _grid.ColumnHeadersDefaultCellStyle.Font =
                 new Font("Segoe UI", 9f, FontStyle.Bold);
             _grid.EnableHeadersVisualStyles = false;

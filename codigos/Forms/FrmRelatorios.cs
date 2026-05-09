@@ -23,6 +23,9 @@ namespace PotirendabaApp.Forms
         private Panel _btnRelatorioVendas;
         private Panel _btnRelatorioProdutos;
         private Panel _btnRelatorioClientes;
+        private Panel _btnRelatorioCaixa;
+        private Panel _btnRelatorioMaisVendidos;
+        private Panel _btnRelatorioVendasCliente;
 
         public FrmRelatorios()
         {
@@ -129,25 +132,38 @@ namespace PotirendabaApp.Forms
             _pConteudo.Controls.Add(_lblTituloSecao);
 
             // Botões de relatório (cards clicáveis)
-            _btnRelatorioVendas   = CriarCardRelatorio("👁", "Comportamento de vendas",   0);
-            _btnRelatorioProdutos = CriarCardRelatorio("👁", "Produtos cadastrados",      1);
-            _btnRelatorioClientes = CriarCardRelatorio("👁", "Clientes cadastrados",      2);
+            _btnRelatorioVendas       = CriarCardRelatorio("📊", "Vendas por Período",         0);
+            _btnRelatorioProdutos     = CriarCardRelatorio("📦", "Estoque de Produtos",        1);
+            _btnRelatorioClientes     = CriarCardRelatorio("👤", "Cadastro de Clientes",       2);
+            _btnRelatorioCaixa        = CriarCardRelatorio("💰", "Caixa do Dia",               3);
+            _btnRelatorioMaisVendidos = CriarCardRelatorio("🏆", "Produtos Mais Vendidos",     4);
+            _btnRelatorioVendasCliente= CriarCardRelatorio("📈", "Vendas por Cliente",         5);
 
             // Eventos de clique
-            _btnRelatorioVendas.Click   += (s, e) => AbrirRelatorioComPeriodo();
-            _btnRelatorioProdutos.Click += (s, e) => GerarRelatorioDireto("Produtos cadastrados");
-            _btnRelatorioClientes.Click += (s, e) => GerarRelatorioDireto("Clientes cadastrados");
+            _btnRelatorioVendas.Click       += (s, e) => AbrirRelatorioComPeriodo("Vendas por Período");
+            _btnRelatorioProdutos.Click     += (s, e) => GerarRelatorioDireto("Estoque de Produtos");
+            _btnRelatorioClientes.Click     += (s, e) => GerarRelatorioDireto("Cadastro de Clientes");
+            _btnRelatorioCaixa.Click        += (s, e) => AbrirRelatorioComPeriodo("Caixa do Dia");
+            _btnRelatorioMaisVendidos.Click += (s, e) => AbrirRelatorioComPeriodo("Produtos Mais Vendidos");
+            _btnRelatorioVendasCliente.Click+= (s, e) => AbrirRelatorioComPeriodo("Vendas por Cliente");
 
             // Também aceita clique nos labels internos
             foreach (Control ctrl in _btnRelatorioVendas.Controls)
-                ctrl.Click += (s, e) => AbrirRelatorioComPeriodo();
+                ctrl.Click += (s, e) => AbrirRelatorioComPeriodo("Vendas por Período");
             foreach (Control ctrl in _btnRelatorioProdutos.Controls)
-                ctrl.Click += (s, e) => GerarRelatorioDireto("Produtos cadastrados");
+                ctrl.Click += (s, e) => GerarRelatorioDireto("Estoque de Produtos");
             foreach (Control ctrl in _btnRelatorioClientes.Controls)
-                ctrl.Click += (s, e) => GerarRelatorioDireto("Clientes cadastrados");
+                ctrl.Click += (s, e) => GerarRelatorioDireto("Cadastro de Clientes");
+            foreach (Control ctrl in _btnRelatorioCaixa.Controls)
+                ctrl.Click += (s, e) => AbrirRelatorioComPeriodo("Caixa do Dia");
+            foreach (Control ctrl in _btnRelatorioMaisVendidos.Controls)
+                ctrl.Click += (s, e) => AbrirRelatorioComPeriodo("Produtos Mais Vendidos");
+            foreach (Control ctrl in _btnRelatorioVendasCliente.Controls)
+                ctrl.Click += (s, e) => AbrirRelatorioComPeriodo("Vendas por Cliente");
 
             _pConteudo.Controls.AddRange(new Control[]
-                { _btnRelatorioVendas, _btnRelatorioProdutos, _btnRelatorioClientes });
+                { _btnRelatorioVendas, _btnRelatorioProdutos, _btnRelatorioClientes,
+                  _btnRelatorioCaixa, _btnRelatorioMaisVendidos, _btnRelatorioVendasCliente });
 
             // Reposicionar cards ao redimensionar
             _pConteudo.Resize += (s, e) => ReposicionarCards();
@@ -231,7 +247,8 @@ namespace PotirendabaApp.Forms
             int largura = _pConteudo.ClientSize.Width - 80;
             if (largura < 100) return;
 
-            var cards = new[] { _btnRelatorioVendas, _btnRelatorioProdutos, _btnRelatorioClientes };
+            var cards = new[] { _btnRelatorioVendas, _btnRelatorioProdutos, _btnRelatorioClientes,
+                                _btnRelatorioCaixa, _btnRelatorioMaisVendidos, _btnRelatorioVendasCliente };
             int cy = 36;
             foreach (var card in cards)
             {
@@ -249,9 +266,16 @@ namespace PotirendabaApp.Forms
         /// Abre o modal de período e, ao confirmar, chama GerarRelatorioVendas().
         /// Relatórios que precisam de intervalo de datas passam por aqui.
         /// </summary>
-        private void AbrirRelatorioComPeriodo()
+        private void AbrirRelatorioComPeriodo(string nome = "Vendas por Período")
         {
-            using var frm = new FrmPeriodoRelatorio(GerarRelatorioVendas);
+            Action<DateTime, DateTime> acao = nome switch
+            {
+                "Caixa do Dia"              => (i, f) => GerarRelatorioCaixa(i),
+                "Produtos Mais Vendidos"    => GerarRelatorioMaisVendidos,
+                "Vendas por Cliente"        => GerarRelatorioVendasCliente,
+                _                           => GerarRelatorioVendas
+            };
+            using var frm = new FrmPeriodoRelatorio(acao);
             frm.ShowDialog(this);
         }
 
@@ -263,10 +287,10 @@ namespace PotirendabaApp.Forms
         {
             switch (nomeRelatorio)
             {
-                case "Produtos cadastrados":
+                case "Estoque de Produtos":
                     GerarRelatorioProdutos();
                     break;
-                case "Clientes cadastrados":
+                case "Cadastro de Clientes":
                     GerarRelatorioClientes();
                     break;
             }
@@ -320,6 +344,28 @@ namespace PotirendabaApp.Forms
         }
 
         // ── Pesquisa / filtro de relatórios ──────────────────────────────────
+        private void GerarRelatorioCaixa(DateTime data)
+        {
+            try   { RelatorioService.ImprimirCaixaDia(data); }
+            catch (Exception ex) { MostrarErro(ex); }
+        }
+
+        private void GerarRelatorioMaisVendidos(DateTime ini, DateTime fim)
+        {
+            try   { RelatorioService.ImprimirProdutosMaisVendidos(ini, fim); }
+            catch (Exception ex) { MostrarErro(ex); }
+        }
+
+        private void GerarRelatorioVendasCliente(DateTime ini, DateTime fim)
+        {
+            try   { RelatorioService.ImprimirVendasPorCliente(ini, fim); }
+            catch (Exception ex) { MostrarErro(ex); }
+        }
+
+        private static void MostrarErro(Exception ex) =>
+            MessageBox.Show($"Erro ao gerar relatório:\n{ex.Message}",
+                "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
         private void FiltrarRelatorios(string texto)
         {
             var termos = new[]
@@ -333,9 +379,12 @@ namespace PotirendabaApp.Forms
             bool filtrar = !string.IsNullOrWhiteSpace(texto);
             string t = texto.ToLower().Trim();
 
-            _btnRelatorioVendas.Visible   = !filtrar || "comportamento de vendas".Contains(t);
-            _btnRelatorioProdutos.Visible = !filtrar || "produtos cadastrados".Contains(t);
-            _btnRelatorioClientes.Visible = !filtrar || "clientes cadastrados".Contains(t);
+            _btnRelatorioVendas.Visible       = !filtrar || "vendas por período".Contains(t);
+            _btnRelatorioProdutos.Visible     = !filtrar || "estoque de produtos".Contains(t);
+            _btnRelatorioClientes.Visible     = !filtrar || "cadastro de clientes".Contains(t);
+            _btnRelatorioCaixa.Visible        = !filtrar || "caixa do dia".Contains(t);
+            _btnRelatorioMaisVendidos.Visible = !filtrar || "produtos mais vendidos".Contains(t);
+            _btnRelatorioVendasCliente.Visible= !filtrar || "vendas por cliente".Contains(t);
 
             ReposicionarCards();
         }
@@ -352,7 +401,8 @@ namespace PotirendabaApp.Forms
             _txtPesquisa.ForeColor = TemaService.TextoPrincipal;
 
             // Cards
-            foreach (var card in new[] { _btnRelatorioVendas, _btnRelatorioProdutos, _btnRelatorioClientes })
+            foreach (var card in new[] { _btnRelatorioVendas, _btnRelatorioProdutos, _btnRelatorioClientes,
+                                         _btnRelatorioCaixa, _btnRelatorioMaisVendidos, _btnRelatorioVendasCliente })
             {
                 card.BackColor = TemaService.FundoPainel;
                 foreach (Control c in card.Controls)

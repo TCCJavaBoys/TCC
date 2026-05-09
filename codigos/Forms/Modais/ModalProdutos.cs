@@ -23,11 +23,17 @@ namespace PotirendabaApp.Forms.Modais
             CarregarGrid();
         }
 
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            TemaService.TemaAlterado -= AplicarTema;
+            base.OnFormClosed(e);
+        }
+
         private void InitUI()
         {
             Text="Selecionar Produto"; Size=new Size(700,520);
             MinimumSize=new Size(500,380); StartPosition=FormStartPosition.CenterParent;
-            FormBorderStyle=FormBorderStyle.Sizable; MaximizeBox=true; BackColor=Color.White;
+            FormBorderStyle=FormBorderStyle.Sizable; MaximizeBox=true; BackColor=TemaService.FundoForm;
 
             var table=new TableLayoutPanel{
                 Dock=DockStyle.Fill,ColumnCount=1,RowCount=4,
@@ -46,7 +52,7 @@ namespace PotirendabaApp.Forms.Modais
                 AutoSize=true,Location=new Point(14,12),BackColor=Color.Transparent});
             table.Controls.Add(header,0,0);
 
-            var pFiltros=new Panel{Dock=DockStyle.Fill,BackColor=Color.FromArgb(240,243,240)};
+            var pFiltros=new Panel{Dock=DockStyle.Fill,BackColor=TemaService.FundoInputRO};
             _txtBusca=new TextBox{
                 Location=new Point(8,10),Size=new Size(240,26),
                 Font=new Font("Segoe UI",9.5f),PlaceholderText="Buscar produto..."};
@@ -67,7 +73,7 @@ namespace PotirendabaApp.Forms.Modais
                 Dock=DockStyle.Fill,ReadOnly=true,
                 AllowUserToAddRows=false,AllowUserToDeleteRows=false,
                 SelectionMode=DataGridViewSelectionMode.FullRowSelect,MultiSelect=false,
-                BackgroundColor=Color.White,BorderStyle=BorderStyle.None,
+                BackgroundColor=TemaService.FundoPainel,BorderStyle=BorderStyle.None,
                 ColumnHeadersHeightSizeMode=DataGridViewColumnHeadersHeightSizeMode.DisableResizing,
                 ColumnHeadersHeight=30,ColumnHeadersVisible=true,
                 RowHeadersVisible=false,Font=new Font("Segoe UI",9.5f),
@@ -76,7 +82,7 @@ namespace PotirendabaApp.Forms.Modais
             _grid.ColumnHeadersDefaultCellStyle.BackColor=Color.FromArgb(200,200,200);
             _grid.ColumnHeadersDefaultCellStyle.ForeColor=Color.FromArgb(20,20,20);
             _grid.ColumnHeadersDefaultCellStyle.Font=new Font("Segoe UI",9.5f,FontStyle.Bold);
-            _grid.DefaultCellStyle.BackColor=Color.White;
+            _grid.DefaultCellStyle.BackColor=TemaService.FundoPainel;
             _grid.DefaultCellStyle.ForeColor=Color.FromArgb(20,20,20);
             _grid.DefaultCellStyle.SelectionBackColor=Verde;
             _grid.DefaultCellStyle.SelectionForeColor=Color.White;
@@ -89,7 +95,7 @@ namespace PotirendabaApp.Forms.Modais
             _grid.CellDoubleClick+=(s,e)=>Selecionar();
             table.Controls.Add(_grid,0,2);
 
-            var pRodape=new Panel{Dock=DockStyle.Fill,BackColor=Color.FromArgb(240,243,240)};
+            var pRodape=new Panel{Dock=DockStyle.Fill,BackColor=TemaService.FundoInputRO};
             pRodape.Controls.Add(new Label{
                 Text="Duplo clique ou Enter para selecionar",
                 Font=new Font("Segoe UI",8f),ForeColor=Color.Gray,
@@ -146,6 +152,35 @@ namespace PotirendabaApp.Forms.Modais
             // ── Camada de Serviço ─────────────────────────────────────────────
             ProdutoSelecionado = ProdutoService.BuscarPorId(id);
             if (ProdutoSelecionado!=null){DialogResult=DialogResult.OK; Close();}
+        }
+
+        private void AplicarTema()
+        {
+            // Form e painéis
+            BackColor = TemaService.FundoForm;
+            foreach (Control ctrl in Controls)
+                if (ctrl is Panel p) p.BackColor = TemaService.FundoInputRO;
+
+            // Grid
+            if (_grid != null)
+            {
+                _grid.BackgroundColor                           = TemaService.FundoPainel;
+                _grid.DefaultCellStyle.BackColor                = TemaService.FundoPainel;
+                _grid.DefaultCellStyle.ForeColor                = TemaService.TextoPrincipal;
+                _grid.AlternatingRowsDefaultCellStyle.BackColor = TemaService.GridAlternada;
+                _grid.AlternatingRowsDefaultCellStyle.ForeColor = TemaService.TextoPrincipal;
+                _grid.ColumnHeadersDefaultCellStyle.BackColor   = TemaService.GridCabecalho;
+                _grid.ColumnHeadersDefaultCellStyle.ForeColor   = Color.FromArgb(20,20,20);
+                _grid.GridColor = TemaService.Borda;
+                _grid.Invalidate();
+            }
+
+            // Campos de busca e filtros
+            if (_txtBusca != null)
+            {
+                _txtBusca.BackColor = TemaService.FundoInput;
+                _txtBusca.ForeColor = TemaService.TextoPrincipal;
+            }
         }
 
         private static Button MakeBtn(string t,Color cor){

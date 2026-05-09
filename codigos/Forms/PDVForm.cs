@@ -56,6 +56,7 @@ namespace PotirendabaApp.Forms
             BackColor       = FundoForm;
             FormBorderStyle = FormBorderStyle.Sizable;
             MaximizeBox     = true;
+            KeyPreview      = true;   // captura ENTER antes dos controles filhos
 
             // ══════════════════════════════════════════════════════════════════
             // TableLayoutPanel RAIZ: 3 linhas × 3 colunas
@@ -140,8 +141,20 @@ namespace PotirendabaApp.Forms
             p.Controls.Add(RotuloAbs("Produto", 0, cy, 270)); cy += 20;
 
             _txtCodigo = TxtAbs("Codigo do produto", 0, cy, 234);
-            _txtCodigo.KeyDown  += (s,e) => { if(e.KeyCode==Keys.Enter) BuscarPorCodigo(); };
-            _txtCodigo.Leave    += (s,e) => { if(!string.IsNullOrWhiteSpace(_txtCodigo.Text)) BuscarPorCodigo(); };
+
+            // ENTER no código:
+            //   → com texto: busca produto → foco vai para quantidade
+            //   → sem texto: abre modal de seleção → foco vai para quantidade
+            _txtCodigo.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode != Keys.Enter) return;
+                e.SuppressKeyPress = true; // evita "ding" do sistema
+                if (string.IsNullOrWhiteSpace(_txtCodigo.Text))
+                    AbrirSelecaoProduto();  // campo vazio → modal
+                else
+                    BuscarPorCodigo();      // campo preenchido → busca
+            };
+
             _btnLupaProduto = BotaoLupa(238, cy);
             _btnLupaProduto.Click += BtnLupaProduto_Click;
             p.Controls.AddRange(new Control[]{ _txtCodigo, _btnLupaProduto }); cy += 32;
@@ -156,8 +169,19 @@ namespace PotirendabaApp.Forms
             p.Controls.Add(RotuloAbs("Quantidade   /   Valor unitário", 0, cy, 270)); cy += 20;
 
             _txtQtd = TxtAbs("Qtd", 0, cy, 100);
-            _txtQtd.KeyPress    += (s,e) => { if(!char.IsDigit(e.KeyChar)&&e.KeyChar!='\b') e.Handled=true; };
+            _txtQtd.KeyPress += (s, e) =>
+            {
+                if (!char.IsDigit(e.KeyChar) && e.KeyChar != '\b') e.Handled = true;
+            };
             _txtQtd.TextChanged += RecalcularItem;
+            // ENTER na quantidade → foco vai para desconto
+            _txtQtd.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode != Keys.Enter) return;
+                e.SuppressKeyPress = true;
+                IrParaDesconto();
+            };
+
             _txtValorUnit = TxtAbs("", 108, cy, 162);
             _txtValorUnit.ReadOnly  = true;
             _txtValorUnit.BackColor = TemaService.FundoInputRO;
@@ -167,6 +191,13 @@ namespace PotirendabaApp.Forms
             p.Controls.Add(RotuloAbs("Desconto (ex: 10% ou 1.50)", 0, cy, 270)); cy += 20;
             _txtDesconto = TxtAbs("Desconto", 0, cy, 270);
             _txtDesconto.TextChanged += RecalcularItem;
+            // ENTER no desconto → foco vai para o botão adicionar
+            _txtDesconto.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode != Keys.Enter) return;
+                e.SuppressKeyPress = true;
+                IrParaAdicionar();
+            };
             p.Controls.Add(_txtDesconto); cy += 32;
 
             _txtValorTotal = new TextBox {
@@ -184,6 +215,13 @@ namespace PotirendabaApp.Forms
             _btnAddItem.MouseEnter += (s,e) => _btnAddItem.BackColor=Verde;
             _btnAddItem.MouseLeave += (s,e) => _btnAddItem.BackColor=VerdeDark;
             _btnAddItem.Click += BtnAddItem_Click;
+            // ENTER no botão adicionar → adiciona item (click já faz isso)
+            _btnAddItem.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode != Keys.Enter) return;
+                e.SuppressKeyPress = true;
+                BtnAddItem_Click(s, e);
+            };
             p.Controls.Add(_btnAddItem); cy += 44;
 
             p.Controls.Add(new Panel { Location=new Point(0,cy), Size=new Size(270,1),
@@ -195,7 +233,14 @@ namespace PotirendabaApp.Forms
             _pAlunoBox.Controls.Add(RotuloAbs("Aluno", 0, 0, 270));
             _txtAluno = TxtAbs("Selecionar aluno...", 0, 20, 234);
             _txtAluno.ReadOnly=true; _txtAluno.Cursor=Cursors.Hand;
-            _txtAluno.Click += BtnLupaAluno_Click;
+            // ENTER ou clique no aluno → abre modal
+            _txtAluno.Click   += BtnLupaAluno_Click;
+            _txtAluno.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode != Keys.Enter) return;
+                e.SuppressKeyPress = true;
+                BtnLupaAluno_Click(s, e);
+            };
             _btnLupaAluno = BotaoLupa(238, 20);
             _btnLupaAluno.Click += BtnLupaAluno_Click;
             _pAlunoBox.Controls.AddRange(new Control[]{ _txtAluno, _btnLupaAluno });
@@ -212,7 +257,20 @@ namespace PotirendabaApp.Forms
             _cmbPagamento.Items.Add("Selecione");
             foreach(var f in VendaService.FormasPagamento) _cmbPagamento.Items.Add(f);
             _cmbPagamento.SelectedIndex=0;
-            _cmbPagamento.SelectedIndexChanged += (s,e) => LimparDestaque(_pPagtoBox);
+            // Ao mudar pagamento → foco vai para Finalizar
+            _cmbPagamento.SelectedIndexChanged += (s, e) =>
+            {
+                LimparDestaque(_pPagtoBox);
+                if (_cmbPagamento.SelectedIndex > 0)
+                    IrParaFinalizar();
+            };
+            // ENTER no combo → foco vai para Finalizar
+            _cmbPagamento.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode != Keys.Enter) return;
+                e.SuppressKeyPress = true;
+                if (_cmbPagamento.SelectedIndex > 0) IrParaFinalizar();
+            };
             _pPagtoBox.Controls.Add(_cmbPagamento);
             p.Controls.Add(_pPagtoBox);
         }
@@ -229,32 +287,45 @@ namespace PotirendabaApp.Forms
 
         private void MontarColunaCentral(Panel p)
         {
+            // TableLayoutPanel garante que o título fique ACIMA do grid
+            // sem risco de sobreposição independente do Dock
+            var tbl = new TableLayoutPanel {
+                Dock=DockStyle.Fill, ColumnCount=1, RowCount=2,
+                CellBorderStyle=TableLayoutPanelCellBorderStyle.None,
+                Padding=Padding.Empty, Margin=Padding.Empty };
+            tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));   // título
+            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100));   // grid
+
             var lblTitulo = new Label {
-                Text="Produtos", Dock=DockStyle.Top, Height=36,
+                Dock=DockStyle.Fill,
+                Text="Produtos",
                 Font=new Font("Segoe UI",12f,FontStyle.Bold), ForeColor=TextoEscuro,
                 TextAlign=ContentAlignment.MiddleLeft,
                 Padding=new Padding(8,0,0,0), BackColor=Color.Transparent };
-            p.Controls.Add(lblTitulo);
+            tbl.Controls.Add(lblTitulo, 0, 0);
 
             _grid = new DataGridView {
                 Dock=DockStyle.Fill,
                 ReadOnly=true, AllowUserToAddRows=false, AllowUserToDeleteRows=false,
                 SelectionMode=DataGridViewSelectionMode.FullRowSelect,
-                BackgroundColor=FundoBranco, BorderStyle=BorderStyle.None,
+                BackgroundColor=TemaService.FundoPainel, BorderStyle=BorderStyle.None,
                 ColumnHeadersHeightSizeMode=DataGridViewColumnHeadersHeightSizeMode.DisableResizing,
                 ColumnHeadersHeight=30, ColumnHeadersVisible=true,
                 RowHeadersVisible=false, Font=new Font("Segoe UI",9f),
                 AutoSizeColumnsMode=DataGridViewAutoSizeColumnsMode.Fill,
                 GridColor=Color.FromArgb(220,220,220),
                 EnableHeadersVisualStyles=false };
-            _grid.ColumnHeadersDefaultCellStyle.BackColor = TemaService.GridCabecalho;
-            _grid.ColumnHeadersDefaultCellStyle.ForeColor = TextoEscuro;
+            _grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(200,200,200); // cinza claro fixo
+            _grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(20,20,20);
             _grid.ColumnHeadersDefaultCellStyle.Font      = new Font("Segoe UI",9f,FontStyle.Bold);
-            _grid.DefaultCellStyle.BackColor = TemaService.FundoPainel;
-            _grid.DefaultCellStyle.ForeColor = TextoEscuro;
-            _grid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(180,220,180);
-            _grid.DefaultCellStyle.SelectionForeColor = Color.Black;
+            _grid.DefaultCellStyle.BackColor              = TemaService.FundoPainel;
+            _grid.DefaultCellStyle.ForeColor              = TemaService.TextoPrincipal;
+            // Seleção: fundo verde claro, texto SEMPRE escuro (legível nos dois temas)
+            _grid.DefaultCellStyle.SelectionBackColor     = Color.FromArgb(180,220,180);
+            _grid.DefaultCellStyle.SelectionForeColor     = Color.FromArgb(20,20,20);
             _grid.AlternatingRowsDefaultCellStyle.BackColor = TemaService.GridAlternada;
+            _grid.AlternatingRowsDefaultCellStyle.ForeColor = TemaService.TextoPrincipal;
 
             _grid.Columns.Add(new DataGridViewTextBoxColumn { Name="cId",   HeaderText="ID",      FillWeight=10 });
             _grid.Columns.Add(new DataGridViewTextBoxColumn { Name="cNome", HeaderText="Produto",  FillWeight=44 });
@@ -265,7 +336,9 @@ namespace PotirendabaApp.Forms
                 Name="cRem", HeaderText="", Text="✕",
                 UseColumnTextForButtonValue=true, FillWeight=8, FlatStyle=FlatStyle.Flat });
             _grid.CellClick += Grid_CellClick;
-            p.Controls.Add(_grid);
+            tbl.Controls.Add(_grid, 0, 1);
+
+            p.Controls.Add(tbl);
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -424,11 +497,13 @@ namespace PotirendabaApp.Forms
         private void BtnLupaAluno_Click(object sender, EventArgs e)
         {
             using var modal = new ModalAlunos();
-            if (modal.ShowDialog(this)==DialogResult.OK && modal.AlunoSelecionado!=null)
+            if (modal.ShowDialog(this) == DialogResult.OK && modal.AlunoSelecionado != null)
             {
                 _alunoAtual    = modal.AlunoSelecionado;
                 _txtAluno.Text = $"{_alunoAtual.Nome} (ID {_alunoAtual.Id})";
                 LimparDestaque(_pAlunoBox);
+                // Fluxo de finalização: aluno selecionado → ir para forma de pagamento
+                IrParaFormaPagamento();
             }
         }
 
@@ -492,15 +567,16 @@ namespace PotirendabaApp.Forms
 
         private void LimparEntrada()
         {
-            _produtoAtual        = null;
-            _txtCodigo.Text      = "";
-            _lblNomeProduto.Text = "—";
+            _produtoAtual             = null;
+            _txtCodigo.Text           = "";
+            _lblNomeProduto.Text      = "—";
             _lblNomeProduto.ForeColor = TextoCinza;
-            _txtValorUnit.Text   = "";
-            _txtQtd.Text         = "";
-            _txtDesconto.Text    = "";
-            _txtValorTotal.Text  = "Valor total do produto";
-            _txtCodigo.Focus();
+            _txtValorUnit.Text        = "";
+            _txtQtd.Text              = "";
+            _txtDesconto.Text         = "";
+            _txtValorTotal.Text       = "Valor total do produto";
+            // [4] Após adicionar → volta automaticamente para o código (loop contínuo)
+            VoltarParaCodigo();
         }
 
         private void LimparVenda()
@@ -514,6 +590,59 @@ namespace PotirendabaApp.Forms
         private static void LimparDestaque(Panel p) => p.BackColor=Color.Transparent;
         private void MostrarAviso(string msg) =>
             MessageBox.Show(msg,"Aviso",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+
+        // ══════════════════════════════════════════════════════════════════════
+        //  NAVEGAÇÃO POR TECLADO — fluxo sem mouse para operador de caixa
+        // ══════════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// [1] Código → abre modal de produtos (campo vazio + ENTER).
+        /// Após selecionar, PreencherProduto já move o foco para Quantidade.
+        /// </summary>
+        private void AbrirSelecaoProduto()
+        {
+            using var modal = new ModalProdutos();
+            if (modal.ShowDialog(this) == DialogResult.OK && modal.ProdutoSelecionado != null)
+                PreencherProduto(modal.ProdutoSelecionado);
+            // PreencherProduto termina com _txtQtd.Focus() — fluxo continua
+        }
+
+        /// <summary>[2] Quantidade → Desconto.</summary>
+        private void IrParaDesconto()
+        {
+            _txtDesconto.Focus();
+            _txtDesconto.SelectAll();
+        }
+
+        /// <summary>[3] Desconto → Botão Adicionar Item.</summary>
+        private void IrParaAdicionar()
+        {
+            _btnAddItem.Focus();
+        }
+
+        /// <summary>
+        /// [4] Após adicionar item → volta para campo Código.
+        /// Chamado no final de BtnAddItem_Click via LimparEntrada().
+        /// </summary>
+        private void VoltarParaCodigo()
+        {
+            _txtCodigo.Clear();
+            _txtCodigo.Focus();
+        }
+
+        /// <summary>[5] Após selecionar aluno → foco vai para Forma de Pagamento.</summary>
+        private void IrParaFormaPagamento()
+        {
+            _cmbPagamento.Focus();
+            _cmbPagamento.DroppedDown = true; // abre o dropdown automaticamente
+        }
+
+        /// <summary>[6] Após selecionar pagamento → foco vai para Finalizar.</summary>
+        private void IrParaFinalizar()
+        {
+            _btnFinalizar.Focus();
+        }
+
         // ══════════════════════════════════════════════════════════════════════
         //  TEMA — atualiza todos os controles em tempo real
         // ══════════════════════════════════════════════════════════════════════
@@ -531,10 +660,10 @@ namespace PotirendabaApp.Forms
                 _grid.DefaultCellStyle.BackColor               = TemaService.FundoPainel;
                 _grid.DefaultCellStyle.ForeColor               = TemaService.TextoPrincipal;
                 _grid.DefaultCellStyle.SelectionBackColor      = Color.FromArgb(180, 220, 180);
-                _grid.DefaultCellStyle.SelectionForeColor      = TemaService.TextoPrincipal;
+                _grid.DefaultCellStyle.SelectionForeColor      = Color.FromArgb(20, 20, 20); // sempre escuro — legível no verde
                 _grid.AlternatingRowsDefaultCellStyle.BackColor= TemaService.GridAlternada;
                 _grid.AlternatingRowsDefaultCellStyle.ForeColor= TemaService.TextoPrincipal;
-                _grid.ColumnHeadersDefaultCellStyle.BackColor  = TemaService.GridCabecalho;
+                _grid.ColumnHeadersDefaultCellStyle.BackColor  = Color.FromArgb(200,200,200); // cinza claro fixo
                 _grid.ColumnHeadersDefaultCellStyle.ForeColor  = Color.FromArgb(20, 20, 20);
                 _grid.GridColor = TemaService.Borda;
                 _grid.Invalidate();
