@@ -138,7 +138,7 @@ namespace PotirendabaApp
             _btnAluno.Click     += (s, e) => AbrirForm(new ListagemAlunosForm());
             _btnEstoque.Click   += (s, e) => AbrirForm(new ListagemProdutosForm());
             _btnVenda.Click     += (s, e) => AbrirVendas();
-            _btnRelatorio.Click += (s, e) => OnNavClick("Relatorio");
+            _btnRelatorio.Click += (s, e) => AbrirForm(new FrmRelatorios());
 
             _sidebar.Controls.AddRange(new Control[]
                 { _btnAluno, _btnEstoque, _btnVenda, _btnRelatorio });

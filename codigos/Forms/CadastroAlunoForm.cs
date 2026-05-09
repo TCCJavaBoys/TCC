@@ -2,7 +2,6 @@ using System;
 using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using PotirendabaApp.Data;
 using PotirendabaApp.Models;
 using PotirendabaApp.Services;
 
@@ -38,13 +37,10 @@ namespace PotirendabaApp.Forms
 
         private void InitUI()
         {
-            Text            = "Cadastro de Aluno";
-            Size            = new Size(560, 480);
-            MinimumSize     = new Size(500, 440);
-            FormBorderStyle = FormBorderStyle.Sizable;
-            MaximizeBox     = true;
-            StartPosition   = FormStartPosition.CenterParent;
-            KeyPreview      = true;
+            Text = "Cadastro de Aluno"; Size = new Size(560, 480);
+            MinimumSize = new Size(500, 440); FormBorderStyle = FormBorderStyle.Sizable;
+            MaximizeBox = true; StartPosition = FormStartPosition.CenterParent;
+            KeyPreview = true;
 
             _topBar = new Panel { Dock=DockStyle.Top, Height=54, BackColor=Verde };
             _topBar.Controls.Add(new Label {
@@ -64,15 +60,12 @@ namespace PotirendabaApp.Forms
                 Font=new Font("Segoe UI",10f,FontStyle.Underline|FontStyle.Bold),
                 AutoSize=true, Location=new Point(10,10), BackColor=Color.Transparent });
 
-            // ID + Ativo
             _content.Controls.Add(MakeLbl("ID", 10, 42));
-            _txtId = MakeTxt(10, 60, 90, soLeitura:true);
-            _txtId.TabStop = false;
+            _txtId = MakeTxt(10, 60, 90, true); _txtId.TabStop=false;
             _content.Controls.Add(_txtId);
 
             _chkAtivo = new CheckBox {
-                Text="Ativo", Checked=true, AutoSize=true,
-                Location=new Point(115, 63),
+                Text="Ativo", Checked=true, AutoSize=true, Location=new Point(115,63),
                 Font=new Font("Segoe UI",9f,FontStyle.Bold),
                 ForeColor=Color.FromArgb(34,130,55) };
             _chkAtivo.CheckedChanged += (s,e) =>
@@ -80,51 +73,39 @@ namespace PotirendabaApp.Forms
                     ? Color.FromArgb(34,130,55) : Vermelho;
             _content.Controls.Add(_chkAtivo);
 
-            // Data
             _content.Controls.Add(MakeLbl("Data", 330, 42));
-            _txtData = MakeTxt(330, 60, 154, soLeitura:false);
+            _txtData = MakeTxt(330, 60, 154, false);
             _txtData.Text = DateTime.Now.ToString("dd/MM/yyyy");
-            _txtData.TabIndex = 4;
-            _txtData.Anchor = AnchorStyles.Top|AnchorStyles.Right;
+            _txtData.TabIndex=4; _txtData.Anchor=AnchorStyles.Top|AnchorStyles.Right;
             _content.Controls.Add(_txtData);
 
-            // Nome
             _content.Controls.Add(MakeLbl("Nome", 10, 100));
-            _txtNome = MakeTxt(10, 118, 474, soLeitura:false);
-            _txtNome.TabIndex = 1;
-            _txtNome.Anchor = AnchorStyles.Top|AnchorStyles.Left|AnchorStyles.Right;
+            _txtNome = MakeTxt(10, 118, 474, false); _txtNome.TabIndex=1;
+            _txtNome.Anchor=AnchorStyles.Top|AnchorStyles.Left|AnchorStyles.Right;
             _content.Controls.Add(_txtNome);
 
-            // Sala
             _content.Controls.Add(MakeLbl("Sala", 330, 154));
-            _txtSala = MakeTxt(330, 172, 154, soLeitura:false);
-            _txtSala.TabIndex = 3;
-            _txtSala.Anchor = AnchorStyles.Top|AnchorStyles.Right;
+            _txtSala = MakeTxt(330, 172, 154, false);
+            _txtSala.TabIndex=3; _txtSala.Anchor=AnchorStyles.Top|AnchorStyles.Right;
             _content.Controls.Add(_txtSala);
 
-            // Telefone
             _content.Controls.Add(MakeLbl("Telefone", 10, 154));
-            _txtTelefone = MakeTxt(10, 172, 210, soLeitura:false);
-            _txtTelefone.MaxLength = 15;
-            _txtTelefone.TabIndex  = 2;
-            _txtTelefone.KeyDown  += Telefone_KeyDown;
+            _txtTelefone = MakeTxt(10, 172, 210, false);
+            _txtTelefone.MaxLength=15; _txtTelefone.TabIndex=2;
+            _txtTelefone.KeyDown += Telefone_KeyDown;
             _content.Controls.Add(_txtTelefone);
 
-            // Botões Salvar e Voltar (sem Inativar)
             _btnSalvar = MakeBtn("Salvar", 330, 416, VerdeBotao);
-            _btnSalvar.TabIndex = 5;
-            _btnSalvar.Anchor   = AnchorStyles.Bottom|AnchorStyles.Right;
-            _btnSalvar.Click   += BtnSalvar_Click;
+            _btnSalvar.TabIndex=5; _btnSalvar.Anchor=AnchorStyles.Bottom|AnchorStyles.Right;
+            _btnSalvar.Click += BtnSalvar_Click;
 
             _btnVoltar = MakeBtn("Voltar", 436, 416, Color.FromArgb(100,100,100));
-            _btnVoltar.TabIndex = 6;
-            _btnVoltar.Anchor   = AnchorStyles.Bottom|AnchorStyles.Right;
-            _btnVoltar.Click   += (s,e) => Close();
+            _btnVoltar.TabIndex=6; _btnVoltar.Anchor=AnchorStyles.Bottom|AnchorStyles.Right;
+            _btnVoltar.Click += (s,e) => Close();
 
             Controls.AddRange(new Control[]{ _btnSalvar, _btnVoltar });
-
             KeyDown += (s,e) => {
-                if (e.KeyCode==Keys.Enter && ActiveControl!=_btnSalvar) {
+                if (e.KeyCode==Keys.Enter&&ActiveControl!=_btnSalvar) {
                     e.SuppressKeyPress=true;
                     SelectNextControl(ActiveControl,true,true,true,true); }};
         }
@@ -132,27 +113,24 @@ namespace PotirendabaApp.Forms
         private void PreencherIdAutomatico()
         {
             if (_alunoEdicao != null) return;
-            var todos = DatabaseHelper.ListarAlunos(status:DatabaseHelper.FiltroStatus.Todos);
-            int proximo = 1;
-            foreach (var a in todos) if (a.Id >= proximo) proximo = a.Id + 1;
-            _txtId.Text = proximo.ToString();
+            _txtId.Text = AlunoService.ProximoId().ToString();
         }
 
         private void Telefone_KeyDown(object sender, KeyEventArgs e)
         {
-            e.SuppressKeyPress = true;
+            e.SuppressKeyPress=true;
             if (e.KeyCode==Keys.Tab||e.KeyCode==Keys.Enter||e.KeyCode==Keys.Left||
                 e.KeyCode==Keys.Right||e.KeyCode==Keys.Home||e.KeyCode==Keys.End)
             { e.SuppressKeyPress=false; return; }
-            string digitos = Regex.Replace(_txtTelefone.Text, @"\D", "");
-            if      (e.KeyCode==Keys.Back)   { if (digitos.Length>0) digitos=digitos[..^1]; }
-            else if (e.KeyCode==Keys.Delete) { digitos=""; }
+            string d = Regex.Replace(_txtTelefone.Text, @"\D","");
+            if      (e.KeyCode==Keys.Back)   { if(d.Length>0) d=d[..^1]; }
+            else if (e.KeyCode==Keys.Delete) { d=""; }
             else {
-                char c = ObterChar(e);
-                if (!char.IsDigit(c)||digitos.Length>=11) return;
-                digitos+=c; }
-            _txtTelefone.Text = FormatarTel(digitos);
-            _txtTelefone.SelectionStart = _txtTelefone.Text.Length;
+                char c=ObterChar(e);
+                if(!char.IsDigit(c)||d.Length>=11) return;
+                d+=c; }
+            _txtTelefone.Text=FormatarTel(d);
+            _txtTelefone.SelectionStart=_txtTelefone.Text.Length;
         }
 
         private static char ObterChar(KeyEventArgs e)
@@ -166,20 +144,16 @@ namespace PotirendabaApp.Forms
 
         private static string FormatarTel(string d) => d.Length switch {
             0      => "", 1 or 2 => $"({d}",
-            <= 6   => $"({d[..2]}) {d[2..]}",
-            <= 10  => $"({d[..2]}) {d[2..6]}-{d[6..]}",
+            <=6    => $"({d[..2]}) {d[2..]}",
+            <=10   => $"({d[..2]}) {d[2..6]}-{d[6..]}",
             _      => $"({d[..2]}) {d[2..7]}-{d[7..]}" };
 
         private void PreencherCampos()
         {
-            _txtId.Text       = _alunoEdicao.Id.ToString();
-            _txtNome.Text     = _alunoEdicao.Nome;
-            _txtTelefone.Text = _alunoEdicao.Telefone;
-            _txtData.Text     = _alunoEdicao.Data;
-            _txtSala.Text     = _alunoEdicao.Sala;
-            _chkAtivo.Checked = _alunoEdicao.Ativo;
-            _chkAtivo.ForeColor = _alunoEdicao.Ativo
-                ? Color.FromArgb(34,130,55) : Vermelho;
+            _txtId.Text=_alunoEdicao.Id.ToString(); _txtNome.Text=_alunoEdicao.Nome;
+            _txtTelefone.Text=_alunoEdicao.Telefone; _txtData.Text=_alunoEdicao.Data;
+            _txtSala.Text=_alunoEdicao.Sala; _chkAtivo.Checked=_alunoEdicao.Ativo;
+            _chkAtivo.ForeColor=_alunoEdicao.Ativo?Color.FromArgb(34,130,55):Vermelho;
         }
 
         private void LimparCampos()
@@ -210,8 +184,9 @@ namespace PotirendabaApp.Forms
                 Telefone=_txtTelefone.Text.Trim(), Data=_txtData.Text.Trim(),
                 Sala=_txtSala.Text.Trim(), Ativo=_chkAtivo.Checked };
 
-            if (_alunoEdicao==null) DatabaseHelper.InserirAluno(aluno);
-            else                    DatabaseHelper.AtualizarAluno(aluno);
+            // ── Camada de Serviço — Forms não conhecem o banco ────────────────
+            if (_alunoEdicao==null) AlunoService.Inserir(aluno);
+            else                    AlunoService.Atualizar(aluno);
 
             if (MessageBox.Show("Voce deseja continuar cadastrando?","Continuar",
                 MessageBoxButtons.YesNo,MessageBoxIcon.Question)==DialogResult.Yes)
@@ -222,19 +197,19 @@ namespace PotirendabaApp.Forms
         private static Label MakeLbl(string t,int x,int y)=>new Label {
             Text=t,Font=new Font("Segoe UI",9f,FontStyle.Bold),
             AutoSize=true,Location=new Point(x,y),BackColor=Color.Transparent };
-        private static TextBox MakeTxt(int x,int y,int w,bool soLeitura)=>new TextBox {
+        private static TextBox MakeTxt(int x,int y,int w,bool ro)=>new TextBox {
             Location=new Point(x,y),Size=new Size(w,28),Font=new Font("Segoe UI",9.5f),
-            ReadOnly=soLeitura,BackColor=soLeitura?Color.FromArgb(225,225,225):Color.White,
+            ReadOnly=ro,BackColor=ro?Color.FromArgb(225,225,225):Color.White,
             BorderStyle=BorderStyle.FixedSingle };
-        private static Button MakeBtn(string t,int x,int y,Color cor) {
-            var b=new Button { Text=t,Location=new Point(x,y),Size=new Size(96,34),
+        private static Button MakeBtn(string t,int x,int y,Color cor){
+            var b=new Button{Text=t,Location=new Point(x,y),Size=new Size(96,34),
                 FlatStyle=FlatStyle.Flat,BackColor=cor,ForeColor=Color.White,
-                Font=new Font("Segoe UI",9f,FontStyle.Bold),Cursor=Cursors.Hand };
+                Font=new Font("Segoe UI",9f,FontStyle.Bold),Cursor=Cursors.Hand};
             b.FlatAppearance.BorderSize=0;
             b.MouseEnter+=(s,e)=>b.BackColor=Lighten(cor,20);
             b.MouseLeave+=(s,e)=>b.BackColor=cor;
-            return b; }
-        private void AplicarTema() => TemaAplicador.AplicarEm(this);
+            return b;}
+        private void AplicarTema()=>TemaAplicador.AplicarEm(this);
         private static Color Lighten(Color c,int a)=>Color.FromArgb(
             Math.Min(c.R+a,255),Math.Min(c.G+a,255),Math.Min(c.B+a,255));
     }

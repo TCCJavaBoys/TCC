@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using PotirendabaApp.Data;
+
 using PotirendabaApp.Services;
 
 namespace PotirendabaApp.Forms
@@ -240,11 +240,11 @@ namespace PotirendabaApp.Forms
         {
             var status = _cmbStatus?.SelectedIndex switch
             {
-                1 => DatabaseHelper.FiltroStatus.Inativos,
-                2 => DatabaseHelper.FiltroStatus.Todos,
-                _ => DatabaseHelper.FiltroStatus.Ativos
+                1 => FiltroStatus.Inativos,
+                2 => FiltroStatus.Todos,
+                _ => FiltroStatus.Ativos
             };
-            var lista = DatabaseHelper.ListarAlunos(
+            var lista = AlunoService.Listar(
                 _txtPesquisa?.Text.Trim() ?? "",
                 _chkNome?.Checked   ?? true,
                 _chkCodigo?.Checked ?? false,
@@ -277,8 +277,7 @@ namespace PotirendabaApp.Forms
         private void AbrirEdicao(int row)
         {
             int id    = Convert.ToInt32(_grid.Rows[row].Cells["colId"].Value);
-            var todos = DatabaseHelper.ListarAlunos(status: DatabaseHelper.FiltroStatus.Todos);
-            var aluno = todos.Find(a => a.Id == id);
+            var aluno = AlunoService.BuscarPorId(id);
             if (aluno == null) return;
             using var form = new CadastroAlunoForm(aluno);
             if (form.ShowDialog() == DialogResult.OK) CarregarGrid();

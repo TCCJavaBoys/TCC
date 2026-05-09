@@ -1,27 +1,54 @@
 using System.Collections.Generic;
 using PotirendabaApp.Data;
 using PotirendabaApp.Models;
-using static PotirendabaApp.Data.DatabaseHelper;
 
 namespace PotirendabaApp.Services
 {
     public static class ProdutoService
     {
-        public static Produto BuscarPorId(int id) =>
-            DatabaseHelper.BuscarProdutoPorId(id);
+        // ── Leitura ───────────────────────────────────────────────────────────
+        public static List<Produto> Listar(
+            string filtro = "",
+            bool porNome = false, bool porCodigo = false,
+            bool ordenarPorNome = false,
+            FiltroStatus status = FiltroStatus.Ativos)
+            => DatabaseHelper.ListarProdutos(filtro, porNome, porCodigo, ordenarPorNome, status);
 
-        /// <summary>Lista produtos. Para o PDV use status=Ativos (padrão).</summary>
-        public static List<Produto> Listar(string filtro = "",
-            bool porNome = true, bool porCodigo = false,
-            FiltroStatus status = FiltroStatus.Ativos) =>
-            DatabaseHelper.ListarProdutos(filtro, porNome, porCodigo, porNome, status);
+        public static List<Produto> ListarTodos()
+            => DatabaseHelper.ListarProdutos(status: FiltroStatus.Todos);
+
+        public static Produto BuscarPorId(int id)
+            => DatabaseHelper.BuscarProdutoPorId(id);
+
+        // ── Escrita ───────────────────────────────────────────────────────────
+        public static int Inserir(Produto produto)
+            => DatabaseHelper.InserirProduto(produto);
+
+        public static void Atualizar(Produto produto)
+            => DatabaseHelper.AtualizarProduto(produto);
+
+        public static void AlternarStatus(int id, bool ativo)
+            => DatabaseHelper.AlternarStatusProduto(id, ativo);
+
+        public static void Excluir(int id)
+            => DatabaseHelper.ExcluirProduto(id);
 
         public static void DebitarEstoque(int produtoId, int quantidade)
         {
-            var p = DatabaseHelper.BuscarProdutoPorId(produtoId);
+            var p = BuscarPorId(produtoId);
             if (p == null) return;
             p.Estoque = System.Math.Max(0, p.Estoque - quantidade);
-            DatabaseHelper.AtualizarProduto(p);
+            Atualizar(p);
+        }
+
+        // ── Utilitário ────────────────────────────────────────────────────────
+        public static int ProximoId()
+        {
+            var todos = ListarTodos();
+            int proximo = 1;
+            foreach (var p in todos)
+                if (p.Id >= proximo) proximo = p.Id + 1;
+            return proximo;
         }
     }
 }

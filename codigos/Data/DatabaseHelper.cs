@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 using PotirendabaApp.Models;
+using PotirendabaApp.Services;
 
 namespace PotirendabaApp.Data
 {
@@ -82,12 +83,14 @@ namespace PotirendabaApp.Data
         // ════════════════════════════════════════════════════════════════════
         //  FILTRO STATUS (enum para Alunos e Produtos)
         // ════════════════════════════════════════════════════════════════════
+        // FiltroStatus agora vive em PotirendabaApp.Services.FiltroStatus
+        // Mantido como alias para não quebrar código existente
         public enum FiltroStatus { Todos, Ativos, Inativos }
 
-        private static string ClausulaAtivo(FiltroStatus status, string where) => status switch
+        private static string ClausulaAtivo(PotirendabaApp.Services.FiltroStatus status, string where) => status switch
         {
-            FiltroStatus.Ativos   => where.Length > 0 ? where + " AND COALESCE(Ativo,1)=1" : "WHERE COALESCE(Ativo,1)=1",
-            FiltroStatus.Inativos => where.Length > 0 ? where + " AND COALESCE(Ativo,1)=0" : "WHERE COALESCE(Ativo,1)=0",
+            PotirendabaApp.Services.FiltroStatus.Ativos   => where.Length > 0 ? where + " AND COALESCE(Ativo,1)=1" : "WHERE COALESCE(Ativo,1)=1",
+            PotirendabaApp.Services.FiltroStatus.Inativos => where.Length > 0 ? where + " AND COALESCE(Ativo,1)=0" : "WHERE COALESCE(Ativo,1)=0",
             _                     => where
         };
 
@@ -119,7 +122,7 @@ namespace PotirendabaApp.Data
 
         public static List<Aluno> ListarAlunos(
             string filtro = "", bool filtrarNome = false, bool filtrarCodigo = false,
-            bool ordenarPorNome = false, FiltroStatus status = FiltroStatus.Ativos)
+            bool ordenarPorNome = false, PotirendabaApp.Services.FiltroStatus status = PotirendabaApp.Services.FiltroStatus.Ativos)
         {
             using var con = Abrir();
             string where = BuildWhere(filtro, filtrarNome, filtrarCodigo);
@@ -182,7 +185,7 @@ namespace PotirendabaApp.Data
 
         public static List<Produto> ListarProdutos(
             string filtro = "", bool filtrarNome = false, bool filtrarCodigo = false,
-            bool ordenarPorNome = false, FiltroStatus status = FiltroStatus.Ativos)
+            bool ordenarPorNome = false, PotirendabaApp.Services.FiltroStatus status = PotirendabaApp.Services.FiltroStatus.Ativos)
         {
             using var con = Abrir();
             string where = BuildWhere(filtro, filtrarNome, filtrarCodigo);
