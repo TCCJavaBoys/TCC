@@ -171,25 +171,6 @@ namespace PotirendabaApp.Forms
 
             // ── Row 2: Barra verde inferior ───────────────────────────────────
             _bottomBar = new Panel { Dock = DockStyle.Fill, BackColor = TemaService.Verde };
-
-            // Ícones sociais no rodapé (decorativo — igual ao sistema)
-            int bx = 10;
-            foreach (var icone in new[] { "💬", "👥", "📷", "⌨" })
-            {
-                _bottomBar.Controls.Add(new Label
-                {
-                    Text      = icone,
-                    Font      = new Font("Segoe UI Emoji", 13f),
-                    ForeColor = Color.White,
-                    AutoSize  = false,
-                    Size      = new Size(36, 36),
-                    Location  = new Point(bx, 8),
-                    TextAlign = ContentAlignment.MiddleCenter,
-                    BackColor = Color.Transparent
-                });
-                bx += 40;
-            }
-
             root.Controls.Add(_bottomBar, 0, 2);
             Controls.Add(root);
         }
