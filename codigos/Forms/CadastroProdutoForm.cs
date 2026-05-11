@@ -41,11 +41,7 @@ namespace PotirendabaApp.Forms
             MaximizeBox=true; StartPosition=FormStartPosition.CenterParent; KeyPreview=true;
 
             _topBar=new Panel{Dock=DockStyle.Top,Height=54,BackColor=Verde};
-            _topBar.Controls.Add(new Label{
-                Text="🏛",Font=new Font("Segoe UI Emoji",18f),ForeColor=Color.White,
-                AutoSize=false,Size=new Size(48,48),Location=new Point(6,3),
-                TextAlign=ContentAlignment.MiddleCenter,BackColor=Color.Transparent});
-            Controls.Add(_topBar);
+            _topBar.Controls.Add(LogoHelper.CriarPictureBox(8, 0, 44, 54));
 
             _content=new Panel{
                 Location=new Point(20,70),Size=new Size(504,330),

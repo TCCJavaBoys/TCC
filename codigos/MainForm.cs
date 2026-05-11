@@ -55,6 +55,7 @@ namespace PotirendabaApp
             Font            = new Font("Segoe UI", 9f);
             FormBorderStyle = FormBorderStyle.Sizable;
             MaximizeBox     = true;
+            Icon            = LogoHelper.GetIcon() ?? Icon;
         }
 
         private void ApplyLayout()
@@ -94,6 +95,19 @@ namespace PotirendabaApp
             };
             new ToolTip().SetToolTip(_btnTema, TemaService.TooltipTema);
             AtualizarBotaoTema();
+            // ── Brasão ANTES do botão de tema ────────────────────────────
+            var pbTop = new PictureBox
+            {
+                Image     = LogoHelper.GetLogo(pequeno: true), // versão pequena 36px
+                SizeMode  = PictureBoxSizeMode.Zoom,
+                Size      = new Size(36, 36),
+                Location  = new Point(8, (BAR_HEIGHT - 36) / 2),
+                BackColor = Color.Transparent
+            };
+            _topBar.Controls.Add(pbTop);
+
+            // Botão tema (lua/sol) — fica à direita do brasão
+            _btnTema.Location = new Point(52, 6);
             _topBar.Controls.Add(_btnTema);
 
             // ── Data ──────────────────────────────────────────────────────────
@@ -166,9 +180,18 @@ namespace PotirendabaApp
         // ══════════════════════════════════════════════════════════════════════
         private void BuildCenter()
         {
+            // Brasão grande no centro (160x160)
             _logoPanel = new Panel
-                { Size = new Size(180, 180), BackColor = Color.Transparent };
-            _logoPanel.Paint += DrawLogo;
+                { Size = new Size(160, 160), BackColor = Color.Transparent };
+
+            var pbCentro = new PictureBox
+            {
+                Image     = LogoHelper.GetLogo(pequeno: false), // versão grande 160px
+                SizeMode  = PictureBoxSizeMode.Zoom,
+                Dock      = DockStyle.Fill,
+                BackColor = Color.Transparent
+            };
+            _logoPanel.Controls.Add(pbCentro);
 
             _lblTitle = new Label
             {
@@ -192,39 +215,9 @@ namespace PotirendabaApp
         {
             int cx = (SIDEBAR_WIDTH + ClientSize.Width) / 2;
             int cy = (BAR_HEIGHT + ClientSize.Height - BAR_HEIGHT) / 2;
-            _logoPanel.Location  = new Point(cx - _logoPanel.Width / 2,  cy - _logoPanel.Height / 2 - 50);
-            _lblTitle.Location   = new Point(cx - _lblTitle.Width / 2,   _logoPanel.Bottom + 12);
-            _lblSubtitle.Location= new Point(cx - _lblSubtitle.Width / 2,_lblTitle.Bottom + 4);
-        }
-
-        private void DrawLogo(object sender, PaintEventArgs e)
-        {
-            var g = e.Graphics;
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            int w = _logoPanel.Width, h = _logoPanel.Height, pad = 6;
-
-            using var shieldBrush = new SolidBrush(Color.FromArgb(240, 255, 240));
-            var shield = new GraphicsPath();
-            shield.AddArc(pad, pad, 40, 40, 180, 90);
-            shield.AddArc(w - pad - 40, pad, 40, 40, 270, 90);
-            shield.AddLine(w - pad, h / 2 + 20, w / 2, h - pad);
-            shield.AddLine(w / 2, h - pad, pad, h / 2 + 20);
-            shield.CloseFigure();
-            g.FillPath(shieldBrush, shield);
-            using var shieldPen = new Pen(Green, 3);
-            g.DrawPath(shieldPen, shield);
-
-            for (int i = 0; i < 3; i++)
-            {
-                using var stripe = new SolidBrush(i == 1 ? GreenDark : Green);
-                g.FillRectangle(stripe, 28 + i * 40, 50, 26, 70);
-            }
-            using var bandBrush = new SolidBrush(GreenDark);
-            g.FillRectangle(bandBrush, pad + 2, h - 38, w - pad * 2 - 4, 22);
-            using var sf = new StringFormat
-                { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-            g.DrawString("POTIRENDABA", new Font("Segoe UI", 6f, FontStyle.Bold),
-                Brushes.White, new RectangleF(pad, h - 38, w - pad * 2, 22), sf);
+            _logoPanel.Location   = new Point(cx - _logoPanel.Width / 2,  cy - _logoPanel.Height / 2 - 50);
+            _lblTitle.Location    = new Point(cx - _lblTitle.Width / 2,   _logoPanel.Bottom + 12);
+            _lblSubtitle.Location = new Point(cx - _lblSubtitle.Width / 2,_lblTitle.Bottom + 4);
         }
 
         // ══════════════════════════════════════════════════════════════════════

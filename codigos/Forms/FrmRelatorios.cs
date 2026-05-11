@@ -51,6 +51,7 @@ namespace PotirendabaApp.Forms
             StartPosition   = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.Sizable;
             MaximizeBox     = true;
+            Icon            = LogoHelper.GetIcon() ?? Icon;
 
             // ── TableLayoutPanel raiz ─────────────────────────────────────────
             var root = new TableLayoutPanel
@@ -70,17 +71,7 @@ namespace PotirendabaApp.Forms
             _topBar = new Panel { Dock = DockStyle.Fill, BackColor = TemaService.Verde };
 
             // Logo/ícone
-            _topBar.Controls.Add(new Label
-            {
-                Text      = "🏛",
-                Font      = new Font("Segoe UI Emoji", 18f),
-                ForeColor = Color.White,
-                AutoSize  = false,
-                Size      = new Size(50, 50),
-                Location  = new Point(8, 5),
-                TextAlign = ContentAlignment.MiddleCenter,
-                BackColor = Color.Transparent
-            });
+            _topBar.Controls.Add(LogoHelper.CriarPictureBox(8, 0, 44, 60));
 
             // Campo de pesquisa
             _txtPesquisa = new TextBox
@@ -171,6 +162,25 @@ namespace PotirendabaApp.Forms
 
             // ── Row 2: Barra verde inferior ───────────────────────────────────
             _bottomBar = new Panel { Dock = DockStyle.Fill, BackColor = TemaService.Verde };
+
+            // Ícones sociais no rodapé (decorativo — igual ao sistema)
+            int bx = 10;
+            foreach (var icone in new[] { "💬", "👥", "📷", "⌨" })
+            {
+                _bottomBar.Controls.Add(new Label
+                {
+                    Text      = icone,
+                    Font      = new Font("Segoe UI Emoji", 13f),
+                    ForeColor = Color.White,
+                    AutoSize  = false,
+                    Size      = new Size(36, 36),
+                    Location  = new Point(bx, 8),
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    BackColor = Color.Transparent
+                });
+                bx += 40;
+            }
+
             root.Controls.Add(_bottomBar, 0, 2);
             Controls.Add(root);
         }

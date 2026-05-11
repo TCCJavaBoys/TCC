@@ -34,6 +34,7 @@ namespace PotirendabaApp.Forms.Modais
             Text="Selecionar Produto"; Size=new Size(700,520);
             MinimumSize=new Size(500,380); StartPosition=FormStartPosition.CenterParent;
             FormBorderStyle=FormBorderStyle.Sizable; MaximizeBox=true; BackColor=TemaService.FundoForm;
+            Icon=LogoHelper.GetIcon() ?? Icon;
 
             var table=new TableLayoutPanel{
                 Dock=DockStyle.Fill,ColumnCount=1,RowCount=4,

@@ -56,6 +56,7 @@ namespace PotirendabaApp.Forms
             BackColor       = FundoForm;
             FormBorderStyle = FormBorderStyle.Sizable;
             MaximizeBox     = true;
+            Icon            = LogoHelper.GetIcon() ?? Icon;
             KeyPreview      = true;   // captura ENTER antes dos controles filhos
 
             // ══════════════════════════════════════════════════════════════════
@@ -88,10 +89,7 @@ namespace PotirendabaApp.Forms
 
             // ── Row 0: Header verde ───────────────────────────────────────────
             var header = new Panel { Dock=DockStyle.Fill, BackColor=Verde };
-            header.Controls.Add(new Label {
-                Text="🏛", Font=new Font("Segoe UI Emoji",18f), ForeColor=Color.White,
-                AutoSize=false, Size=new Size(50,50), Location=new Point(6,2),
-                TextAlign=ContentAlignment.MiddleCenter, BackColor=Color.Transparent });
+            header.Controls.Add(LogoHelper.CriarPictureBox(8, 0, 44, 54));
             header.Controls.Add(new Label {
                 Text="PDV - Ponto de Venda",
                 Font=new Font("Segoe UI",13f,FontStyle.Bold), ForeColor=Color.White,

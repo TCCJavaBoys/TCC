@@ -1,7 +1,6 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using PotirendabaApp.Data;
 using PotirendabaApp.Services;
 
 namespace PotirendabaApp.Forms
@@ -39,6 +38,7 @@ namespace PotirendabaApp.Forms
             StartPosition   = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.Sizable;
             MaximizeBox     = true;
+            Icon            = LogoHelper.GetIcon() ?? Icon;
             BackColor       = Fundo;
 
             // ════════════════════════════════════════════════════════════════
@@ -74,10 +74,7 @@ namespace PotirendabaApp.Forms
             // ── Row 0: Header verde (span 2 colunas) ─────────────────────────
             var header = new Panel { Dock = DockStyle.Fill, BackColor = Verde };
 
-            header.Controls.Add(new Label {
-                Text = "🏛", Font = new Font("Segoe UI Emoji", 18f), ForeColor = Color.White,
-                AutoSize = false, Size = new Size(48, 48), Location = new Point(8, 11),
-                TextAlign = ContentAlignment.MiddleCenter, BackColor = Color.Transparent });
+            header.Controls.Add(LogoHelper.CriarPictureBox(8, 0, 44, 70));
 
             header.Controls.Add(new Label {
                 Text = "Consulta de Vendas",
@@ -207,7 +204,7 @@ namespace PotirendabaApp.Forms
         // ── Carregar dados ────────────────────────────────────────────────────
         private void CarregarGrid()
         {
-            var vendas = DatabaseHelper.ListarVendas(
+            var vendas = VendaService.Listar(
                 _txtPesquisa?.Text.Trim() ?? "",
                 _chkNome?.Checked   ?? false,
                 _chkCodigo?.Checked ?? false,

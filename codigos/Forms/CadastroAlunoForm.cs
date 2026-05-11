@@ -39,14 +39,12 @@ namespace PotirendabaApp.Forms
         {
             Text = "Cadastro de Aluno"; Size = new Size(560, 480);
             MinimumSize = new Size(500, 440); FormBorderStyle = FormBorderStyle.Sizable;
-            MaximizeBox = true; StartPosition = FormStartPosition.CenterParent;
+            MaximizeBox = true;
+            Icon            = LogoHelper.GetIcon() ?? Icon; StartPosition = FormStartPosition.CenterParent;
             KeyPreview = true;
 
             _topBar = new Panel { Dock=DockStyle.Top, Height=54, BackColor=Verde };
-            _topBar.Controls.Add(new Label {
-                Text="🏛", Font=new Font("Segoe UI Emoji",18f), ForeColor=Color.White,
-                AutoSize=false, Size=new Size(48,48), Location=new Point(6,3),
-                TextAlign=ContentAlignment.MiddleCenter, BackColor=Color.Transparent });
+            _topBar.Controls.Add(LogoHelper.CriarPictureBox(8, 0, 44, 54));
             Controls.Add(_topBar);
 
             _content = new Panel {

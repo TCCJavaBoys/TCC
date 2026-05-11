@@ -40,6 +40,7 @@ namespace PotirendabaApp.Forms
             StartPosition   = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.Sizable;
             MaximizeBox     = true;
+            Icon            = LogoHelper.GetIcon() ?? Icon;
             BackColor       = Fundo;
 
             // ════════════════════════════════════════════════════════════════
@@ -81,14 +82,7 @@ namespace PotirendabaApp.Forms
             var topBar = new Panel { Dock = DockStyle.Fill, BackColor = Verde };
 
             // Ícone/logo
-            topBar.Controls.Add(new Label
-            {
-                Text = "🏛", Font = new Font("Segoe UI Emoji", 18f),
-                ForeColor = Color.White, AutoSize = false,
-                Size = new Size(48, 48), Location = new Point(8, 11),
-                TextAlign = ContentAlignment.MiddleCenter,
-                BackColor = Color.Transparent
-            });
+            topBar.Controls.Add(LogoHelper.CriarPictureBox(8, 0, 44, 70));
 
             // Título na barra verde
             topBar.Controls.Add(new Label

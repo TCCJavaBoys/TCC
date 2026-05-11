@@ -56,6 +56,7 @@ namespace PotirendabaApp.Forms
             BackColor       = FundoForm;
             FormBorderStyle = FormBorderStyle.Sizable;
             MaximizeBox     = true;
+            Icon            = LogoHelper.GetIcon() ?? Icon;
 
             ConstruirTopBar();
 
@@ -77,12 +78,7 @@ namespace PotirendabaApp.Forms
         {
             var bar = new Panel { Dock = DockStyle.Top, Height = 54, BackColor = Verde };
 
-            bar.Controls.Add(new Label
-            {
-                Text = "🏛", Font = new Font("Segoe UI Emoji", 18f), ForeColor = Color.White,
-                AutoSize = false, Size = new Size(50, 50), Location = new Point(6, 2),
-                TextAlign = ContentAlignment.MiddleCenter, BackColor = Color.Transparent
-            });
+            bar.Controls.Add(LogoHelper.CriarPictureBox(8, 0, 44, 54));
 
             // Badge "SOMENTE LEITURA" centralizado na barra
             bar.Controls.Add(new Label
