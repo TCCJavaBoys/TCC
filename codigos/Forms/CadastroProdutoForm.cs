@@ -85,10 +85,14 @@ namespace PotirendabaApp.Forms
             _content.Controls.Add(_txtValor);
 
             _content.Controls.Add(MakeLbl("Estoque (qtd)",10,154));
-            _txtEstoque=MakeTxt(10,172,210,false); _txtEstoque.TabIndex=2;
-            _txtEstoque.KeyPress+=(s,e)=>{
-                if(!char.IsDigit(e.KeyChar)&&e.KeyChar!='\b') e.Handled=true;};
+            _txtEstoque=MakeTxt(10,172,210,true); _txtEstoque.TabStop=false;
             _content.Controls.Add(_txtEstoque);
+
+            var lblEstoqueInfo = new Label{
+                Text="Calculado automaticamente a partir dos lotes do produto.",
+                Font=new Font("Segoe UI",7.5f,FontStyle.Italic),ForeColor=Color.Gray,
+                AutoSize=true,Location=new Point(10,200),BackColor=Color.Transparent};
+            _content.Controls.Add(lblEstoqueInfo);
 
             _btnSalvar=MakeBtn("Salvar",330,416,VerdeBotao);
             _btnSalvar.TabIndex=5; _btnSalvar.Anchor=AnchorStyles.Bottom|AnchorStyles.Right;
@@ -109,6 +113,7 @@ namespace PotirendabaApp.Forms
         {
             if (_produtoEdicao != null) return;
             _txtId.Text = ProdutoService.ProximoId().ToString();
+            _txtEstoque.Text = "0";
         }
 
         private void PreencherCampos()

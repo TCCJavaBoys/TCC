@@ -30,5 +30,12 @@ namespace PotirendabaApp.Models
         public decimal ValorUnit   { get; set; }
         public decimal Desconto    { get; set; }
         public decimal ValorTotal  => (ValorUnit * Quantidade) - Desconto;
+
+        // Lote de onde essa quantidade foi de fato debitada (FEFO).
+        // Nullable: preenchido pelo LoteService.ConsumirFEFO no momento da venda.
+        // Se a quantidade do carrinho for maior que um único lote,
+        // o VendaService divide o item em múltiplas linhas de ItemVenda,
+        // uma por lote consumido — por isso aqui é sempre 1:1 com Lotes.
+        public int?    LoteId      { get; set; }
     }
 }

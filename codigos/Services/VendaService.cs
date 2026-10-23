@@ -63,6 +63,31 @@ namespace PotirendabaApp.Services
             decimal total = 0;
             foreach (var i in itens) total += i.ValorTotal;
 
+            // Antes de gravar, "explode" cada item em uma linha por lote consumido
+            // (regra FEFO): o item que o operador vê como "5x Suco de Laranja"
+            // pode virar duas linhas internas se o lote mais próximo do
+            // vencimento não tiver as 5 unidades inteiras.
+            var itensComLote = new List<ItemVenda>();
+            foreach (var item in itens)
+            {
+                var consumos = LoteService.ConsumirFEFO(item.ProdutoId, item.Quantidade);
+                foreach (var consumo in consumos)
+                {
+                    itensComLote.Add(new ItemVenda
+                    {
+                        ProdutoId   = item.ProdutoId,
+                        NomeProduto = item.NomeProduto,
+                        Quantidade  = consumo.Quantidade,
+                        ValorUnit   = item.ValorUnit,
+                        // Desconto rateado proporcionalmente à quantidade da linha
+                        Desconto    = item.Quantidade > 0
+                            ? item.Desconto * consumo.Quantidade / item.Quantidade
+                            : item.Desconto,
+                        LoteId      = consumo.LoteId > 0 ? consumo.LoteId : (int?)null
+                    });
+                }
+            }
+
             var venda = new Venda
             {
                 Cliente        = aluno,
@@ -70,14 +95,10 @@ namespace PotirendabaApp.Services
                 Data           = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
                 FormaPagamento = formaPgto,
                 Status         = "Ativa",
-                Itens          = new List<ItemVenda>(itens)
+                Itens          = itensComLote
             };
 
-            int vendaId = DatabaseHelper.InserirVenda(venda);
-            foreach (var item in itens)
-                ProdutoService.DebitarEstoque(item.ProdutoId, item.Quantidade);
-
-            return vendaId;
+            return DatabaseHelper.InserirVenda(venda);
         }
     }
 

@@ -50,6 +50,12 @@ namespace PotirendabaApp.Services
                         txt.ForeColor = TemaService.TextoPrincipal;
                         break;
 
+                    // ── MaskedTextBox (ex.: campo de data com máscara) ────────
+                    case MaskedTextBox mtxt:
+                        mtxt.BackColor = TemaService.FundoInput;
+                        mtxt.ForeColor = TemaService.TextoPrincipal;
+                        break;
+
                     // ── TextBoxes somente-leitura ─────────────────────────────
                     case TextBox txt when txt.ReadOnly:
                         txt.BackColor = TemaService.FundoInputRO;

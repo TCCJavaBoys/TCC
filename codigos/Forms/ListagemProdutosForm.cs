@@ -173,8 +173,14 @@ namespace PotirendabaApp.Forms
                 { Name="colId",    HeaderText="ID",       FillWeight=7,  MinimumWidth=44 });
             _grid.Columns.Add(new DataGridViewButtonColumn
             {
-                Name="colEditar",  HeaderText="",  Text="✏",
-                UseColumnTextForButtonValue=true, FillWeight=6, MinimumWidth=32,
+                Name="colEditar",  HeaderText="Editar",  Text="✏",
+                UseColumnTextForButtonValue=true, FillWeight=8, MinimumWidth=56,
+                FlatStyle=FlatStyle.Flat
+            });
+            _grid.Columns.Add(new DataGridViewButtonColumn
+            {
+                Name="colLotes",   HeaderText="Lotes",  Text="📦 Lotes",
+                UseColumnTextForButtonValue=true, FillWeight=12, MinimumWidth=76,
                 FlatStyle=FlatStyle.Flat
             });
             _grid.Columns.Add(new DataGridViewTextBoxColumn
@@ -219,7 +225,7 @@ namespace PotirendabaApp.Forms
             foreach (var p in lista)
             {
                 int idx = _grid.Rows.Add(
-                    p.Id, "✏", p.Nome,
+                    p.Id, "✏", "📦 Lotes", p.Nome,
                     $"R$ {p.Valor:F2}", p.Estoque.ToString(), p.Data,
                     p.Ativo ? "✓ Ativo" : "✗ Inativo");
                 if (!p.Ativo)
@@ -233,12 +239,24 @@ namespace PotirendabaApp.Forms
 
         private void Grid_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0 || _grid.Columns[e.ColumnIndex].Name != "colEditar") return;
-            AbrirEdicao(e.RowIndex);
+            if (e.RowIndex < 0) return;
+            string coluna = _grid.Columns[e.ColumnIndex].Name;
+            if (coluna == "colEditar") { AbrirEdicao(e.RowIndex); return; }
+            if (coluna == "colLotes")  { AbrirLotes(e.RowIndex);  return; }
         }
         private void Grid_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0) AbrirEdicao(e.RowIndex);
+        }
+        private void AbrirLotes(int row)
+        {
+            int id    = Convert.ToInt32(_grid.Rows[row].Cells["colId"].Value);
+            var todos = ProdutoService.Listar(status: FiltroStatus.Todos);
+            var prod  = todos.Find(p => p.Id == id);
+            if (prod == null) return;
+            using var form = new ListagemLotesForm(prod);
+            form.ShowDialog();
+            CarregarGrid(); // reflete no grid o Estoque recalculado após mexer nos lotes
         }
         private void AbrirEdicao(int row)
         {

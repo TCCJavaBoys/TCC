@@ -33,6 +33,13 @@ namespace PotirendabaApp.Services
         public static void Excluir(int id)
             => DatabaseHelper.ExcluirProduto(id);
 
+        /// <summary>
+        /// MÉTODO ANTERIOR ao controle de lotes. Não é mais chamado pelo fluxo de
+        /// venda (ver VendaService.Finalizar + LoteService.ConsumirFEFO), pois
+        /// agora Produtos.Estoque é recalculado automaticamente a partir da soma
+        /// dos Lotes ativos. Mantido apenas para não quebrar código legado/testes
+        /// que ainda dependam dele.
+        /// </summary>
         public static void DebitarEstoque(int produtoId, int quantidade)
         {
             var p = BuscarPorId(produtoId);

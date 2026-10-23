@@ -52,9 +52,20 @@ namespace PotirendabaApp.Data
                 Desconto    REAL,
                 FOREIGN KEY(VendaId) REFERENCES Vendas(Id));");
 
+            // Controle de lotes: um produto pode ter N lotes, cada um com sua validade.
+            Run(con, @"CREATE TABLE IF NOT EXISTS Lotes (
+                Id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                ProdutoId    INTEGER NOT NULL,
+                Quantidade   INTEGER NOT NULL,
+                DataValidade TEXT    NOT NULL,
+                DataEntrada  TEXT    NOT NULL,
+                Ativo        INTEGER DEFAULT 1,
+                FOREIGN KEY(ProdutoId) REFERENCES Produtos(Id));");
+
             // Migração segura: adiciona coluna Ativo se o banco já existia sem ela
             MigrarColuna(con, "Alunos",   "Ativo", "INTEGER DEFAULT 1");
             MigrarColuna(con, "Produtos", "Ativo", "INTEGER DEFAULT 1");
+            MigrarColuna(con, "ItensVenda", "LoteId", "INTEGER");
         }
 
         /// <summary>Adiciona coluna se ainda não existir (migração não destrutiva).</summary>
@@ -267,14 +278,15 @@ namespace PotirendabaApp.Data
             foreach (var item in venda.Itens)
             {
                 using var cmdI = new SqliteCommand(@"
-                    INSERT INTO ItensVenda(VendaId,ProdutoId,NomeProduto,Quantidade,ValorUnit,Desconto)
-                    VALUES(@VI,@PI,@NP,@QT,@VU,@DC);", con, tx);
+                    INSERT INTO ItensVenda(VendaId,ProdutoId,NomeProduto,Quantidade,ValorUnit,Desconto,LoteId)
+                    VALUES(@VI,@PI,@NP,@QT,@VU,@DC,@LI);", con, tx);
                 cmdI.Parameters.AddWithValue("@VI", vendaId);
                 cmdI.Parameters.AddWithValue("@PI", item.ProdutoId);
                 cmdI.Parameters.AddWithValue("@NP", item.NomeProduto);
                 cmdI.Parameters.AddWithValue("@QT", item.Quantidade);
                 cmdI.Parameters.AddWithValue("@VU", item.ValorUnit);
                 cmdI.Parameters.AddWithValue("@DC", item.Desconto);
+                cmdI.Parameters.AddWithValue("@LI", (object)item.LoteId ?? DBNull.Value);
                 cmdI.ExecuteNonQuery();
             }
             tx.Commit();
@@ -337,6 +349,90 @@ namespace PotirendabaApp.Data
                 ValorUnit=ri.IsDBNull(3)?0m:Convert.ToDecimal(ri.GetDouble(3)),
                 Desconto=ri.IsDBNull(4)?0m:Convert.ToDecimal(ri.GetDouble(4)) });
             return venda;
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        //  LOTES
+        // ════════════════════════════════════════════════════════════════════
+        public static int InserirLote(Lote lote)
+        {
+            using var con = Abrir();
+            using var cmd = new SqliteCommand(@"
+                INSERT INTO Lotes(ProdutoId,Quantidade,DataValidade,DataEntrada,Ativo)
+                VALUES(@PI,@QT,@DV,@DE,@A); SELECT last_insert_rowid();", con);
+            cmd.Parameters.AddWithValue("@PI", lote.ProdutoId);
+            cmd.Parameters.AddWithValue("@QT", lote.Quantidade);
+            cmd.Parameters.AddWithValue("@DV", lote.DataValidade);
+            cmd.Parameters.AddWithValue("@DE", lote.DataEntrada);
+            cmd.Parameters.AddWithValue("@A",  lote.Ativo ? 1 : 0);
+            int id = Convert.ToInt32(cmd.ExecuteScalar());
+            RecalcularEstoqueProduto(con, lote.ProdutoId);
+            return id;
+        }
+
+        /// <summary>Lista os lotes de um produto (ou todos, se produtoId = null), do mais próximo do vencimento para o mais distante — já em ordem FEFO.</summary>
+        public static List<Lote> ListarLotes(int? produtoId = null, bool somenteAtivos = true)
+        {
+            using var con = Abrir();
+            var partes = new List<string>();
+            if (produtoId.HasValue) partes.Add("L.ProdutoId=@PI");
+            if (somenteAtivos)      partes.Add("COALESCE(L.Ativo,1)=1");
+            string where = partes.Count > 0 ? "WHERE " + string.Join(" AND ", partes) : "";
+            using var cmd = new SqliteCommand($@"
+                SELECT L.Id, L.ProdutoId, P.Nome, L.Quantidade, L.DataValidade, L.DataEntrada, L.Ativo
+                FROM Lotes L
+                JOIN Produtos P ON P.Id = L.ProdutoId
+                {where}
+                ORDER BY L.DataValidade ASC;", con);
+            if (produtoId.HasValue) cmd.Parameters.AddWithValue("@PI", produtoId.Value);
+            var lista = new List<Lote>();
+            using var r = cmd.ExecuteReader();
+            while (r.Read()) lista.Add(new Lote {
+                Id=r.GetInt32(0), ProdutoId=r.GetInt32(1), NomeProduto=r.GetString(2),
+                Quantidade=r.GetInt32(3), DataValidade=r.GetString(4), DataEntrada=r.GetString(5),
+                Ativo=r.IsDBNull(6) || r.GetInt32(6)==1 });
+            return lista;
+        }
+
+        public static void AtualizarLote(Lote lote)
+        {
+            using var con = Abrir();
+            using var cmd = new SqliteCommand(@"
+                UPDATE Lotes SET Quantidade=@QT, DataValidade=@DV, Ativo=@A WHERE Id=@Id;", con);
+            cmd.Parameters.AddWithValue("@Id", lote.Id);
+            cmd.Parameters.AddWithValue("@QT", lote.Quantidade);
+            cmd.Parameters.AddWithValue("@DV", lote.DataValidade);
+            cmd.Parameters.AddWithValue("@A",  lote.Ativo ? 1 : 0);
+            cmd.ExecuteNonQuery();
+            RecalcularEstoqueProduto(con, lote.ProdutoId);
+        }
+
+        /// <summary>Debita uma quantidade de um lote específico (usado pelo consumo FEFO na venda).</summary>
+        public static void DebitarLote(int loteId, int quantidade)
+        {
+            using var con = Abrir();
+            using var cmd = new SqliteCommand(
+                "UPDATE Lotes SET Quantidade = MAX(0, Quantidade - @Q) WHERE Id=@Id;", con);
+            cmd.Parameters.AddWithValue("@Q",  quantidade);
+            cmd.Parameters.AddWithValue("@Id", loteId);
+            cmd.ExecuteNonQuery();
+
+            using var cmdP = new SqliteCommand("SELECT ProdutoId FROM Lotes WHERE Id=@Id;", con);
+            cmdP.Parameters.AddWithValue("@Id", loteId);
+            var produtoId = Convert.ToInt32(cmdP.ExecuteScalar());
+            RecalcularEstoqueProduto(con, produtoId);
+        }
+
+        /// <summary>Recalcula Produtos.Estoque como a soma dos lotes ativos daquele produto (fonte da verdade passa a ser Lotes).</summary>
+        private static void RecalcularEstoqueProduto(SqliteConnection con, int produtoId)
+        {
+            using var cmd = new SqliteCommand(@"
+                UPDATE Produtos SET Estoque = (
+                    SELECT COALESCE(SUM(Quantidade),0) FROM Lotes
+                    WHERE ProdutoId=@PI AND COALESCE(Ativo,1)=1
+                ) WHERE Id=@PI;", con);
+            cmd.Parameters.AddWithValue("@PI", produtoId);
+            cmd.ExecuteNonQuery();
         }
     }
 }

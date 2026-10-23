@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Linq;
 using PotirendabaApp.Data;
 using PotirendabaApp.Forms;
 using PotirendabaApp.Services;
@@ -44,6 +45,41 @@ namespace PotirendabaApp
         {
             TemaService.TemaAlterado -= AplicarTema;
             base.OnFormClosed(e);
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            VerificarAlertaGlobalDeValidade();
+        }
+
+        /// <summary>
+        /// Regra de negócio da seção 3.1: identifica automaticamente, ao abrir o sistema,
+        /// lotes próximos do vencimento em QUALQUER produto e alerta o usuário,
+        /// sugerindo promoção ou descarte conforme LoteService.Avaliar.
+        /// </summary>
+        private void VerificarAlertaGlobalDeValidade()
+        {
+            var proximos = LoteService.ListarProximosValidade();
+            if (proximos.Count == 0) return;
+
+            int promocao = proximos.Count(l => LoteService.Avaliar(l) == AcaoSugerida.Promocao);
+            int descarte = proximos.Count(l => LoteService.Avaliar(l) == AcaoSugerida.Descarte);
+
+            var linhas = proximos
+                .OrderBy(l => l.DiasParaVencer)
+                .Take(8)
+                .Select(l => $"• {l.NomeProduto} — " +
+                             (l.DiasParaVencer < 0 ? "vencido" : $"{l.DiasParaVencer} dia(s)") +
+                             $" ({(LoteService.Avaliar(l) == AcaoSugerida.Descarte ? "descarte" : "promoção")})");
+
+            string msg = $"⚠ {proximos.Count} lote(s) próximo(s) do vencimento:\n\n" +
+                         string.Join("\n", linhas) +
+                         (proximos.Count > 8 ? "\n..." : "") +
+                         $"\n\n🏷 Sugeridos p/ promoção: {promocao}    ⚠ Sugeridos p/ descarte: {descarte}\n\n" +
+                         "Acesse Estoque/Produto > 📦 Lotes para ver detalhes e agir.";
+
+            MessageBox.Show(msg, "Alerta de Validade", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         private void InitializeComponent()
